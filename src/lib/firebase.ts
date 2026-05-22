@@ -1,6 +1,6 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAuth, Auth } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,7 +11,26 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+// Solo inicializar en el cliente (no durante SSR/build de Next.js)
+let app: FirebaseApp | undefined;
+let auth: Auth;
+let db: Firestore;
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+if (typeof window !== "undefined") {
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+} else {
+  // Durante SSR/build: inicializar igual pero sin fallar si no hay API key
+  try {
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+  } catch {
+    // Se inicializará en el cliente con las vars correctas
+    auth = {} as Auth;
+    db = {} as Firestore;
+  }
+}
+
+export { auth, db };
