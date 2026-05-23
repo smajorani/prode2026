@@ -5,6 +5,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -85,6 +86,10 @@ export async function savePrediction(userId: string, matchId: string, homeScore:
 export async function getUserPredictions(userId: string): Promise<Prediction[]> {
   const snap = await getDocs(query(collection(db, "predictions"), where("userId", "==", userId)));
   return snap.docs.map((d) => d.data() as Prediction);
+}
+
+export async function deletePrediction(userId: string, matchId: string) {
+  await deleteDoc(doc(db, "predictions", `${userId}_${matchId}`));
 }
 
 export function subscribeUserPredictions(userId: string, cb: (preds: Prediction[]) => void): Unsubscribe {

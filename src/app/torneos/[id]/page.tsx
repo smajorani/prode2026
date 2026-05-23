@@ -13,7 +13,7 @@ import {
 import UserAvatar from "@/components/UserAvatar";
 import {
   subscribeLeaderboard, subscribeMatches, subscribeUserPredictions,
-  savePrediction, saveBonusPrediction, subscribeBonusPrediction,
+  savePrediction, deletePrediction, saveBonusPrediction, subscribeBonusPrediction,
 } from "@/lib/firestore";
 import { weightedRandomScore } from "@/lib/scores";
 import { FIXTURE } from "@/lib/fixture";
@@ -534,13 +534,18 @@ export default function TournamentDetailPage() {
 
   async function handleSaveAll() {
     if (!user || saving || Object.keys(localEdits).length === 0) return;
-    const entries = Object.entries(localEdits).filter(([, v]) => v.home !== "" && v.away !== "");
     setSaving(true);
     try {
       await Promise.all(
-        entries.map(([matchId, { home, away }]) =>
-          savePrediction(user.uid, matchId, Number(home), Number(away))
-        )
+        Object.entries(localEdits).map(([matchId, { home, away }]) => {
+          if (home === "" && away === "" && predMap[matchId]) {
+            return deletePrediction(user.uid, matchId);
+          }
+          if (home !== "" && away !== "") {
+            return savePrediction(user.uid, matchId, Number(home), Number(away));
+          }
+          return Promise.resolve();
+        })
       );
       setLocalEdits({});
       setToast(true);
