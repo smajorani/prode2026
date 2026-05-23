@@ -464,16 +464,69 @@ export default function TournamentDetailPage() {
     }
   }
 
+  function randomFrom<T>(arr: T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
   async function handleRandomFill() {
     if (!user || randomFilling) return;
     setRandomFilling(true);
     try {
-      const targets = shownMatches.filter(
-        (m) => !predMap[m.id] && new Date(m.date) > new Date()
-      );
-      for (const match of targets) {
-        const { home, away } = weightedRandomScore();
-        await savePrediction(user.uid, match.id, home, away);
+      if (activeGroup === "BONUS") {
+        const teamsWithPlayers = ALL_TEAMS.filter(({ team }) => {
+          const s = SQUADS[team];
+          return s && (s.porteros.length + s.defensas.length + s.mediocampistas.length + s.delanteros.length > 0);
+        });
+        const allPlayersOf = (team: string) => {
+          const s = SQUADS[team];
+          return [...s.porteros, ...s.defensas, ...s.mediocampistas, ...s.delanteros];
+        };
+
+        const newChampion = bonusChampion || randomFrom(ALL_TEAMS).team;
+
+        let newTSTeam = bonusTSTeam;
+        let newTSPlayer = bonusTSPlayer;
+        if (!newTSTeam) {
+          newTSTeam = randomFrom(teamsWithPlayers).team;
+          newTSPlayer = randomFrom(allPlayersOf(newTSTeam));
+        } else if (!newTSPlayer && SQUADS[newTSTeam]) {
+          const players = allPlayersOf(newTSTeam);
+          if (players.length > 0) newTSPlayer = randomFrom(players);
+        }
+
+        let newBPTeam = bonusBPTeam;
+        let newBPPlayer = bonusBPPlayer;
+        if (!newBPTeam) {
+          newBPTeam = randomFrom(teamsWithPlayers).team;
+          newBPPlayer = randomFrom(allPlayersOf(newBPTeam));
+        } else if (!newBPPlayer && SQUADS[newBPTeam]) {
+          const players = allPlayersOf(newBPTeam);
+          if (players.length > 0) newBPPlayer = randomFrom(players);
+        }
+
+        setBonusChampion(newChampion);
+        setBonusTSTeam(newTSTeam);
+        setBonusTSPlayer(newTSPlayer);
+        setBonusBPTeam(newBPTeam);
+        setBonusBPPlayer(newBPPlayer);
+
+        await saveBonusPrediction(user.uid, id, {
+          champion: newChampion,
+          topScorerTeam: newTSTeam,
+          topScorerPlayer: newTSPlayer,
+          bestPlayerTeam: newBPTeam,
+          bestPlayerPlayer: newBPPlayer,
+        });
+        setBonusToast(true);
+        setTimeout(() => setBonusToast(false), 2500);
+      } else {
+        const targets = shownMatches.filter(
+          (m) => !predMap[m.id] && new Date(m.date) > new Date()
+        );
+        for (const match of targets) {
+          const { home, away } = weightedRandomScore();
+          await savePrediction(user.uid, match.id, home, away);
+        }
       }
     } finally {
       setRandomFilling(false);
