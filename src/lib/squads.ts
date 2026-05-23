@@ -18,7 +18,13 @@ export const SQUADS: Record<string, TeamSquad> = {
     mediocampistas: ["Alexei Domínguez", "Alexis Gutiérrez", "Álvaro Fidalgo", "Brian Gutiérrez", "Carlos Rodríguez", "Denzell Garcia", "Diego Lainez", "Efrain Álvarez", "Elias Montiel", "Érick Sánchez", "Erik Lira", "Gilberto Mora", "Isaías Violante", "Jeremy Márquez", "Jordan Carrillo", "Jorge Ruvalcaba", "Kevin Castañeda", "Luis Chávez", "Luis Romo", "Marcel Ruiz", "Obed Vargas", "Orbelín Pineda"],
     delanteros: ["Alexis Vega", "Armando González", "César Huerta", "Germán Berterame", "Guillermo Martínez", "Julián Quiñoones", "Raúl Jiménez", "Roberto Alvarado", "Santiago Gimenez"],
   },
-  "Sudáfrica": { flagCode: "za", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "Sudáfrica": {
+    flagCode: "za",
+    porteros: ["Ricardo Goss", "Ronwen Williams", "Sipho Chaine"],
+    defensas: ["Aubrey Modiba", "Bradley Cross", "Ime Okon", "Khuliso Mudau", "Mbekezeli Mbokazi", "Mothobi Mvala", "Nkosinathi Sibisi", "Olwethu Makhanya", "Siyabonga Ngezana", "Thapelo Monyane"],
+    mediocampistas: ["Bathusi Aubaas", "Jayden Adams", "Lebogang Maboe", "Sphephelo Sithole", "Teboho Mokoena", "Thalente Mbatha", "Themba Zwane"],
+    delanteros: ["Elias Mokwana", "Evidence Makgopa", "Iqraam Rayners", "Lyle Foster", "Oswin Appollis", "Percy Tau", "Relebohile Mofokeng", "Shandre Campbell"],
+  },
   "Corea del Sur": {
     flagCode: "kr",
     porteros: ["Jo Hyun-Woo", "Kim Seung-Gyu", "Song Bum-Keun"],
@@ -35,7 +41,13 @@ export const SQUADS: Record<string, TeamSquad> = {
   },
 
   // ── Grupo B ──────────────────────────────────────────────────────────────
-  "Canadá": { flagCode: "ca", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "Canadá": {
+    flagCode: "ca",
+    porteros: ["Dayne St. Clair", "Maxime Crépeau", "Owen Goodman"],
+    defensas: ["Alistair Johnston", "Derek Cornelius", "Jahkeele Marshall-Rutty", "Joel Waterman", "Kamal Miller", "Luc de Fougerolles", "Moïse Bombito", "Niko Sigur", "Richie Laryea"],
+    mediocampistas: ["Ali Ahmed", "Ismaël Koné", "Jonathan Osorio", "Junior Hoilett", "Liam Millar", "Marcelo Flores", "Mathieu Choinière", "Nathan Saliba", "Ralph Priso", "Tajon Buchanan"],
+    delanteros: ["Aribim Pepple", "Cyle Larin", "Jonathan David", "Tani Oluwaseyi"],
+  },
   "Bosnia Herz.": {
     flagCode: "ba",
     porteros: ["Martin Zlomislic", "Nikola Vasilj", "Osman Hadzikic"],
@@ -66,7 +78,13 @@ export const SQUADS: Record<string, TeamSquad> = {
     mediocampistas: ["Bruno Guimarães", "Casemiro", "Danilo Santos", "Fabinho", "Lucas Paquetá"],
     delanteros: ["Endrick", "Gabriel Martinelli", "Igor Thiago", "Luiz Henrique", "Matheus Cunha", "Neymar", "Raphinha", "Rayan", "Vinícius Júnior"],
   },
-  "Marruecos": { flagCode: "ma", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "Marruecos": {
+    flagCode: "ma",
+    porteros: ["Al Harrar El Mehdi", "Benchaouch Yanis", "El Kajoui Munir", "Gomis Ibrahim"],
+    defensas: ["Ait Boudlal Abdelhamid", "Baoue Ismaël", "Belammari Youssef", "Bouftini Souhiane", "Chibi Mohamed", "El Karouani Souffian", "El Mourabet Samir", "Saadane Marouane", "Salahdine Anass"],
+    mediocampistas: ["Amaymouni-Echghouyab Ayoub", "Bouaddi Ayyoub", "El-Faouzi Soufiane", "Gessime Yassine", "Louza Imran", "Saibari Ismael", "Targhalline Oussama"],
+    delanteros: ["Begraoui Yanis", "Benjdida Soufiane", "Bentayeb Tawfik", "Boufal Soufiane", "Bounida Rayane", "El Kaabi Ayoub", "Maamma Othmane", "Zabir Yassir"],
+  },
   "Haití": {
     flagCode: "ht",
     porteros: ["Alexandre Pierre", "Johny Placide", "Josue Duverger"],
@@ -83,7 +101,13 @@ export const SQUADS: Record<string, TeamSquad> = {
   },
 
   // ── Grupo D ──────────────────────────────────────────────────────────────
-  "Estados Unidos": { flagCode: "us", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "Estados Unidos": {
+    flagCode: "us",
+    porteros: ["Chris Brady", "Matt Turner"],
+    defensas: ["Antonee Robinson", "Chris Richards", "Joe Scally", "Mark McKenzie", "Miles Robinson", "Sergiño Dest", "Tim Ream"],
+    mediocampistas: ["Gio Reyna", "Sebastian Berhalter", "Tyler Adams", "Weston McKennie", "Yunus Musah"],
+    delanteros: ["Alejandro Zendejas", "Brenden Aaronson", "Christian Pulisic", "Folarin Balogun", "Haji Wright", "Ricardo Pepi", "Tim Weah"],
+  },
   "Paraguay": {
     flagCode: "py",
     porteros: ["Carlos Coronel", "Gastón Olveira", "Juan Espínola", "Orlando Gill", "Roberto Fernández", "Santiago Rojas"],
@@ -91,7 +115,13 @@ export const SQUADS: Record<string, TeamSquad> = {
     mediocampistas: ["Alvaro Campuzano", "Andrés Cubas", "Braian Ojeda", "Damián Bobadilla", "Diego Gómez", "Diego Gonzalez", "Enso González", "Hugo Cuenca", "Kaku", "Lucas Romero", "Matías Galarza", "Mathías Villasanti", "Mauricio Magalhaes", "Miguel Almirón", "Ramón Sosa", "Robert Piris Da Motta", "Ruben Lezcano"],
     delanteros: ["Adam Bareiro", "Adrian Alcaraz", "Alex Arce", "Ángel Romero", "Antonio Sanabria", "Carlos Gonzalez", "Gabriel Avalos", "Gustavo Caballero", "Isidro Pitta", "Julio Enciso", "Lorenzo Melgarejo", "Oscar Romero", "Robert Morales", "Rodney Redes", "Ronaldo Martinez"],
   },
-  "Australia": { flagCode: "au", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "Australia": {
+    flagCode: "au",
+    porteros: ["Joe Gauci", "Patrick Beach", "Paul Izzo"],
+    defensas: ["Ante Suto", "Aziz Behich", "Cameron Burgess", "Dylan Leonard", "Harry Souttar", "Jason Geria", "Jordan Bos", "Milos Degenek"],
+    mediocampistas: ["Aiden O'Neill", "Ajdin Hrustic", "Alex Robertson", "Anthony Caceres", "Cameron Devlin", "Connor Metcalfe", "Gianni Stensness", "Jackson Irvine", "Jacob Italiano"],
+    delanteros: ["Brandon Borrello", "Daniel Bennie", "Martin Boyle", "Mathew Leckie", "Mitch Duke", "Mohamed Toure", "Nestory Irankunda", "Nick D'Agostino", "Nishan Velupillay", "Raphael Borges Rodrigues"],
+  },
   "Turquía": {
     flagCode: "tr",
     porteros: ["Altay Bayindir", "Ersin Destanoglu", "Mert Günok", "Muhhamed Sengezer", "Ugurcan Çakir"],
@@ -122,10 +152,22 @@ export const SQUADS: Record<string, TeamSquad> = {
     mediocampistas: ["Christ Inao Oulaï", "Franck Kessié", "Ibrahim Sangaré", "Jean Michaël Seri", "Parfait Guiagon", "Seko Fofana"],
     delanteros: ["Amad Diallo", "Ange-Yoan Bonny", "Bazoumana Touré", "Elye Wahi", "Evann Guessand", "Nicolas Pépé", "Oumar Diakité", "Simon Adingra", "Yan Diomande"],
   },
-  "Ecuador": { flagCode: "ec", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "Ecuador": {
+    flagCode: "ec",
+    porteros: ["Gonzalo Valle", "Hernán Galíndez", "Moisés Ramírez"],
+    defensas: ["Ángelo Preciado", "Félix Torres", "Jhoanner Chávez", "José Hurtado", "Pervis Estupiñán", "Piero Hincapié", "Willian Pacho", "Yaimar Medina", "Jackson Porozo"],
+    mediocampistas: ["Alan Franco", "Carlos Gruezo", "Jordy Alcívar", "Kendry Páez", "Moisés Caicedo", "Nilson Angulo", "Pedro Vite"],
+    delanteros: ["Enner Valencia", "Gonzalo Plata", "Jeremy Arévalo", "Janner Corozo", "John Mercado", "John Yeboah", "Jordy Caicedo", "Kevin Rodríguez"],
+  },
 
   // ── Grupo F ──────────────────────────────────────────────────────────────
-  "Países Bajos": { flagCode: "nl", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "Países Bajos": {
+    flagCode: "nl",
+    porteros: ["Bart Verbruggen", "Justin Bijlow", "Mark Flekken"],
+    defensas: ["Denzel Dumfries", "Jan Paul van Hecke", "Jeremie Frimpong", "Jorrel Hato", "Lutsharel Geertruida", "Micky van de Ven", "Nathan Aké", "Stefan de Vrij", "Virgil van Dijk"],
+    mediocampistas: ["Jerdy Schouten", "Kees Smit", "Luciano Valente", "Quinten Timber", "Ryan Gravenberch", "Teun Koopmeiners", "Tijjani Reijnders", "Xavi Simons"],
+    delanteros: ["Brian Brobbey", "Cody Gakpo", "Donyell Malen", "Memphis Depay", "Noa Lang", "Wout Weghorst"],
+  },
   "Japón": {
     flagCode: "jp",
     porteros: ["Keisuke Osako", "Tomoki Hayakawa", "Zion Suzuki"],
@@ -179,7 +221,13 @@ export const SQUADS: Record<string, TeamSquad> = {
   },
 
   // ── Grupo H ──────────────────────────────────────────────────────────────
-  "España": { flagCode: "es", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "España": {
+    flagCode: "es",
+    porteros: ["Álex Remiro", "David Raya", "Joan García", "Unai Simón"],
+    defensas: ["Álex Grimaldo", "Aymeric Laporte", "Cristhian Mosquera", "Dean Huijsen", "Marc Cucurella", "Marcos Llorente", "Pau Cubarsí", "Pedro Porro"],
+    mediocampistas: ["Carlos Soler", "Dani Olmo", "Fermín López", "Pablo Fornals", "Pedri", "Rodri"],
+    delanteros: ["Álex Baena", "Borja Iglesias", "Ferran Torres", "Lamine Yamal", "Mikel Oyarzabal", "Víctor Muñoz", "Yéremy Pino"],
+  },
   "Cabo Verde": {
     flagCode: "cv",
     porteros: ["CJ dos Santos", "Marcio Rosa", "Vozinha"],
@@ -187,8 +235,20 @@ export const SQUADS: Record<string, TeamSquad> = {
     mediocampistas: ["Deroy Duarte", "Jamiro Monteiro", "Kevin Pina", "Laros Duarte", "Telmo Arcanjo", "Yannick Semedo"],
     delanteros: ["Dailon Livramento", "Garry Rodrigues", "Gilson Benchimol", "Helio Varela", "Jovane Cabral", "Nuno da Costa", "Ryan Mendes", "Willy Semedo"],
   },
-  "Arabia Saudí": { flagCode: "sa", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
-  "Uruguay": { flagCode: "uy", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "Arabia Saudí": {
+    flagCode: "sa",
+    porteros: ["Ahmed Al-Kassar", "Mohammed Al-Owais", "Nawaf Al-Aqidi"],
+    defensas: ["Abdulelah Al-Amri", "Ali Al-Bulaihi", "Ali Majrashi", "Hassan Tambakti", "Saud Abdulhamid", "Yasser Al-Shahrani"],
+    mediocampistas: ["Abdullah Al-Khaibari", "Abdulrahman Ghareeb", "Ayman Yahya", "Faisal Al-Ghamdi", "Mohamed Kanno", "Marwan Al-Sahafi", "Musab Al-Juwayr", "Salem Al-Dawsari", "Turki Al-Ammar", "Ziyad Al-Johani"],
+    delanteros: ["Abdullah Radif", "Firas Al-Buraikan", "Saleh Al-Shehri"],
+  },
+  "Uruguay": {
+    flagCode: "uy",
+    porteros: ["Fernando Muslera", "Santiago Mele", "Sergio Rochet"],
+    defensas: ["Guillermo Varela", "José María Giménez", "Lucas Olaza", "Matías Viña", "Mathías Olivera", "Nahitan Nández", "Ronald Araújo", "Santiago Bueno", "Sebastián Cáceres"],
+    mediocampistas: ["Facundo Pellistri", "Federico Valverde", "Giorgian de Arrascaeta", "Juan Manuel Sanabria", "Manuel Ugarte", "Nicolás de la Cruz", "Rodrigo Bentancur", "Rodrigo Zalazar"],
+    delanteros: ["Agustín Álvarez Martínez", "Agustín Canobbio", "Brian Rodríguez", "Darwin Núñez", "Federico Viñas", "Maximiliano Araújo", "Rodrigo Aguirre"],
+  },
 
   // ── Grupo I ──────────────────────────────────────────────────────────────
   "Francia": {
@@ -205,7 +265,13 @@ export const SQUADS: Record<string, TeamSquad> = {
     mediocampistas: ["Bara Sapoko Ndiaye", "Habib Diarra", "Idrissa Gana Gueye", "Lamine Camara", "Pape Gueye", "Pape Matar Sarr", "Pathé Ciss"],
     delanteros: ["Assane Diao", "Bamba Dieng", "Cherif Ndiaye", "Ibrahim Mbaye", "Iliman Ndiaye", "Ismaïla Sarr", "Nicolas Jackson", "Sadio Mané"],
   },
-  "Irak": { flagCode: "iq", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "Irak": {
+    flagCode: "iq",
+    porteros: ["Ahmed Basil", "Fahad Talib", "Jalal Hassan", "Kumel Al-Rekabe"],
+    defensas: ["Ali Adnan", "Frans Putros", "Hussein Ali", "Manaf Younis", "Merchas Doski", "Mustafa Nadhim", "Rebin Sulaka", "Zaid Tahseen"],
+    mediocampistas: ["Amir Al-Ammari", "Ibrahim Bayesh", "Jussef Nasrawe", "Karar Nabeel", "Osama Rashid", "Safaa Hadi", "Zidane Iqbal"],
+    delanteros: ["Ali Jasim", "Aymen Hussein", "Danilo Al-Saed", "Marko Farji", "Mohanad Ali", "Youssef Amyn"],
+  },
   "Noruega": {
     flagCode: "no",
     porteros: ["Egil Selvik", "Sander Tangvik", "Ørjan Nyland"],
@@ -222,7 +288,13 @@ export const SQUADS: Record<string, TeamSquad> = {
     mediocampistas: ["Alan Varela", "Alexis Mac Allister", "Emiliano Buendía", "Enzo Fernández", "Exequiel Palacios", "Ezequiel Fernández", "Giovani Lo Celso", "Guido Rodríguez", "Leandro Paredes", "Máximo Perrone", "Milton Delgado", "Nicolás Domínguez", "Rodrigo De Paul", "Valentín Barco"],
     delanteros: ["Alejandro Garnacho", "Claudio Echeverri", "Franco Mastantuono", "Gianluca Prestianni", "Giuliano Simeone", "Jose Manuel Lopez", "Julián Álvarez", "Lautaro Martínez", "Lionel Messi", "Mateo Pellegrino", "Matías Soulè", "Nicolas Paz", "Nicolás González", "Santiago Castro", "Thiago Almada", "Tomas Aranda"],
   },
-  "Argelia": { flagCode: "dz", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "Argelia": {
+    flagCode: "dz",
+    porteros: ["Anthony Mandréa", "Kilian Belazzoug", "Luca Zidane", "Melvin Mastil"],
+    defensas: ["Aïssa Mandi", "Jaouen Hadjam", "Mohamed Amine Tougaï", "Rafik Belghali", "Ramy Bensebaini", "Samir Chergui", "Sohaib Naïr", "Zineddine Belaïd"],
+    mediocampistas: ["Adil Aouchiche", "Farès Chaïbi", "Hicham Boudaoui", "Houssem Aouar", "Ismaël Bennacer", "Ramiz Zerrouki", "Yassine Titraoui"],
+    delanteros: ["Amine Gouiri", "Baghdad Bounedjah", "Islam Slimani", "Mohamed Amoura", "Riyad Mahrez", "Saïd Benrahma", "Adil Boulbina"],
+  },
   "Austria": {
     flagCode: "at",
     porteros: ["Alexander Schlager", "Florian Wiegele", "Patrick Pentz"],
@@ -283,8 +355,20 @@ export const SQUADS: Record<string, TeamSquad> = {
     mediocampistas: ["Kristijan Jakic", "Luka Modric", "Luka Sucic", "Martin Baturina", "Mario Pasalic", "Mateo Kovacic", "Nikola Moro", "Nikola Vlasic", "Petar Sucic", "Toni Fruk"],
     delanteros: ["Andrej Kramaric", "Ante Budimir", "Igor Matanovic", "Ivan Perisic", "Marco Pasalic", "Petar Musa"],
   },
-  "Ghana": { flagCode: "gh", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
-  "Panamá": { flagCode: "pa", porteros: [], defensas: [], mediocampistas: [], delanteros: [] },
+  "Ghana": {
+    flagCode: "gh",
+    porteros: ["Benjamin Asare", "Joseph Anang", "Lawrence Ati-Zigi"],
+    defensas: ["Alexander Djiku", "Caleb Yirenkyi", "Derrick Köhn", "Derrick Luckassen", "Gideon Mensah", "Jerome Opoku", "Jonas Adjetey", "Kojo Oppong Pepprah", "Marvin Senaya", "Patrick Pfeiffer"],
+    mediocampistas: ["Elisha Owusu", "Ibrahim Sulemana", "Kwasi Sibo", "Thomas Partey"],
+    delanteros: ["Abdul Fatawu Issahaku", "Antoine Semenyo", "Brandon Thomas-Asante", "Christopher Bonsu Baah", "Daniel Agyei", "Iñaki Williams", "Jordan Ayew", "Kamal Deen Sulemana", "Prince Adu"],
+  },
+  "Panamá": {
+    flagCode: "pa",
+    porteros: ["Luis Mejía", "Orlando Mosquera"],
+    defensas: ["Amir Murillo", "Andrés Andrade", "César Blackman", "Edgardo Fariña", "Eric Davis", "Fidel Escobar"],
+    mediocampistas: ["Adalberto Carrasquilla", "Aníbal Godoy", "Cristian Martínez"],
+    delanteros: ["Cecilio Waterman", "Eduardo Guerrero", "Ismael Díaz", "José Fajardo", "José Luis Rodríguez"],
+  },
 };
 
 export const ALL_TEAMS = Object.entries(SQUADS).map(([team, { flagCode }]) => ({ team, flagCode }));
