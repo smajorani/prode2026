@@ -186,9 +186,7 @@ export default function TournamentDetailPage() {
         const t = await joinTournament(user.uid, id);
         await refreshTournaments();
         setCurrentTournament(t);
-        setTournament(t);
-        const allUsers = await getLeaderboard();
-        setMembers(allUsers.filter((u) => t.members.includes(u.uid)).sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0)));
+        // tournament + members se actualizan vía onSnapshot
       } catch { /* silent */ }
     }, 500);
     return () => clearTimeout(timer);
