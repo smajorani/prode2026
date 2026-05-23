@@ -14,7 +14,7 @@ import {
   Unsubscribe,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { Match, Prediction, UserProfile } from "@/types";
+import { Match, Prediction, UserProfile, BonusPrediction } from "@/types";
 import { FIXTURE } from "./fixture";
 import { calculateScore } from "./scoring";
 
@@ -139,6 +139,41 @@ async function recalculatePredictionsForMatch(matchId: string) {
   }
 
   await batch.commit();
+}
+
+// ── Bonus Predictions ─────────────────────────────────────────────────────
+
+export async function saveBonusPrediction(
+  userId: string,
+  tournamentId: string,
+  data: Partial<Pick<BonusPrediction, "champion" | "topScorerTeam" | "topScorerPlayer" | "bestPlayerTeam" | "bestPlayerPlayer">>
+) {
+  const id = `${userId}_${tournamentId}`;
+  const ref = doc(db, "bonusPredictions", id);
+  const now = new Date().toISOString();
+  const existing = await getDoc(ref);
+  if (existing.exists()) {
+    await updateDoc(ref, { ...data, updatedAt: now });
+  } else {
+    await setDoc(ref, {
+      id, userId, tournamentId,
+      champion: "", topScorerTeam: "", topScorerPlayer: "",
+      bestPlayerTeam: "", bestPlayerPlayer: "",
+      ...data,
+      updatedAt: now,
+    });
+  }
+}
+
+export function subscribeBonusPrediction(
+  userId: string,
+  tournamentId: string,
+  cb: (pred: BonusPrediction | null) => void
+): Unsubscribe {
+  const id = `${userId}_${tournamentId}`;
+  return onSnapshot(doc(db, "bonusPredictions", id), (snap) => {
+    cb(snap.exists() ? (snap.data() as BonusPrediction) : null);
+  });
 }
 
 // ── Leaderboard ───────────────────────────────────────────────────────────

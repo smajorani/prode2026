@@ -53,6 +53,18 @@ export interface Tournament {
   createdAt: string;
 }
 
+export interface BonusPrediction {
+  id: string;              // {userId}_{tournamentId}
+  userId: string;
+  tournamentId: string;
+  champion: string;
+  topScorerTeam: string;
+  topScorerPlayer: string;
+  bestPlayerTeam: string;
+  bestPlayerPlayer: string;
+  updatedAt: string;
+}
+
 export const SCORING: Record<Phase, Record<ScoringResult["reason"], number>> = {
   group: {
     exact: 5,

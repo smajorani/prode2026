@@ -11,11 +11,15 @@ import {
   subscribeTournament,
 } from "@/lib/tournaments";
 import UserAvatar from "@/components/UserAvatar";
-import { subscribeLeaderboard, subscribeMatches, subscribeUserPredictions, savePrediction } from "@/lib/firestore";
+import {
+  subscribeLeaderboard, subscribeMatches, subscribeUserPredictions,
+  savePrediction, saveBonusPrediction, subscribeBonusPrediction,
+} from "@/lib/firestore";
 import { weightedRandomScore } from "@/lib/scores";
 import { FIXTURE } from "@/lib/fixture";
+import { SQUADS, ALL_TEAMS } from "@/lib/squads";
 import { auth } from "@/lib/firebase";
-import { Tournament, UserProfile, Match, Prediction, Phase } from "@/types";
+import { Tournament, UserProfile, Match, Prediction, Phase, BonusPrediction } from "@/types";
 
 // ── Fixture helpers ───────────────────────────────────────────────────────
 
@@ -85,6 +89,155 @@ function PredInput({ match, prediction, onSave, saving }: {
   );
 }
 
+// ── Bonus Panel ───────────────────────────────────────────────────────────
+
+function TeamSelect({ value, onChange, placeholder }: {
+  value: string; onChange: (v: string) => void; placeholder: string;
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400 appearance-none pr-8"
+      >
+        <option value="">{placeholder}</option>
+        {ALL_TEAMS.map(({ team, flagCode }) => (
+          <option key={team} value={team}>{team}</option>
+        ))}
+      </select>
+      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500">▾</span>
+    </div>
+  );
+}
+
+function PlayerSelect({ team, value, onChange }: {
+  team: string; value: string; onChange: (v: string) => void;
+}) {
+  const players = team ? (SQUADS[team]?.players ?? []) : [];
+  const sorted = [...players].sort((a, b) => a.localeCompare(b, "es"));
+
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={!team || sorted.length === 0}
+        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400 appearance-none pr-8 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        <option value="">
+          {!team ? "Elegí el equipo primero" : sorted.length === 0 ? "Plantel no disponible" : "Elegí un jugador"}
+        </option>
+        {sorted.map((p) => (
+          <option key={p} value={p}>{p}</option>
+        ))}
+      </select>
+      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500">▾</span>
+    </div>
+  );
+}
+
+function BonusPanel({
+  isMember, champion, tsTeam, tsPlayer, bpTeam, bpPlayer,
+  onChampion, onTSTeam, onTSPlayer, onBPTeam, onBPPlayer, onSave, saving,
+}: {
+  isMember: boolean;
+  champion: string; tsTeam: string; tsPlayer: string; bpTeam: string; bpPlayer: string;
+  onChampion: (v: string) => void; onTSTeam: (v: string) => void; onTSPlayer: (v: string) => void;
+  onBPTeam: (v: string) => void; onBPPlayer: (v: string) => void;
+  onSave: () => void; saving: boolean;
+}) {
+  const championSquad = champion ? SQUADS[champion] : null;
+
+  return (
+    <div className="flex flex-col gap-4">
+      {!isMember && (
+        <p className="text-gray-500 text-sm">Unite al torneo para guardar tus predicciones bonus.</p>
+      )}
+
+      {/* Scoring legend */}
+      <div className="bg-gray-900/60 border border-gray-800 rounded-xl px-4 py-3 text-xs text-gray-500 flex flex-wrap gap-x-5 gap-y-1">
+        <span><span className="text-yellow-400 font-semibold">Campeón exacto</span> → 20 pts</span>
+        <span><span className="text-yellow-400 font-semibold">Jugador exacto</span> → 15 pts</span>
+        <span><span className="text-gray-300 font-semibold">Solo el equipo</span> → 8 pts</span>
+      </div>
+
+      {/* Campeón */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-yellow-400 text-lg">🏆</span>
+          <div>
+            <div className="font-semibold text-white text-sm">Campeón del Mundial</div>
+            <div className="text-xs text-gray-500">20 puntos si acertás</div>
+          </div>
+          {champion && championSquad && (
+            <img
+              src={`https://flagcdn.com/w40/${championSquad.flagCode.toLowerCase()}.png`}
+              alt={champion}
+              className="w-6 h-4 object-cover rounded-sm ml-auto"
+            />
+          )}
+        </div>
+        <TeamSelect value={champion} onChange={onChampion} placeholder="Elegí el campeón" />
+      </div>
+
+      {/* Goleador */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-yellow-400 text-lg">⚽</span>
+          <div>
+            <div className="font-semibold text-white text-sm">Goleador del torneo</div>
+            <div className="text-xs text-gray-500">15 pts jugador · 8 pts solo el equipo</div>
+          </div>
+          {tsTeam && SQUADS[tsTeam] && (
+            <img
+              src={`https://flagcdn.com/w40/${SQUADS[tsTeam].flagCode.toLowerCase()}.png`}
+              alt={tsTeam}
+              className="w-6 h-4 object-cover rounded-sm ml-auto"
+            />
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <TeamSelect value={tsTeam} onChange={onTSTeam} placeholder="Equipo del goleador" />
+          <PlayerSelect team={tsTeam} value={tsPlayer} onChange={onTSPlayer} />
+        </div>
+      </div>
+
+      {/* Mejor jugador */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-yellow-400 text-lg">⭐</span>
+          <div>
+            <div className="font-semibold text-white text-sm">Mejor jugador del torneo</div>
+            <div className="text-xs text-gray-500">15 pts jugador · 8 pts solo el equipo</div>
+          </div>
+          {bpTeam && SQUADS[bpTeam] && (
+            <img
+              src={`https://flagcdn.com/w40/${SQUADS[bpTeam].flagCode.toLowerCase()}.png`}
+              alt={bpTeam}
+              className="w-6 h-4 object-cover rounded-sm ml-auto"
+            />
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <TeamSelect value={bpTeam} onChange={onBPTeam} placeholder="Equipo del mejor jugador" />
+          <PlayerSelect team={bpTeam} value={bpPlayer} onChange={onBPPlayer} />
+        </div>
+      </div>
+
+      {isMember && (
+        <button
+          onClick={onSave}
+          disabled={saving}
+          className="w-full bg-yellow-400 text-gray-900 font-bold py-3 rounded-xl text-sm hover:bg-yellow-300 disabled:opacity-50 transition-colors"
+        >
+          {saving ? "Guardando..." : "Guardar Bonus"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────
 
 export default function TournamentDetailPage() {
@@ -113,9 +266,19 @@ export default function TournamentDetailPage() {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [saving, setSaving] = useState<string | null>(null);
   const [activePhase, setActivePhase] = useState<Phase>("group");
-  const [activeGroup, setActiveGroup] = useState("A");
+  const [activeGroup, setActiveGroup] = useState("A"); // "A"–"L" or "BONUS"
   const [toast, setToast] = useState(false);
   const [randomFilling, setRandomFilling] = useState(false);
+
+  // Bonus predictions state
+  const [bonusPred, setBonusPred] = useState<BonusPrediction | null>(null);
+  const [bonusSaving, setBonusSaving] = useState(false);
+  const [bonusToast, setBonusToast] = useState(false);
+  const [bonusChampion, setBonusChampion] = useState("");
+  const [bonusTSTeam, setBonusTSTeam] = useState("");
+  const [bonusTSPlayer, setBonusTSPlayer] = useState("");
+  const [bonusBPTeam, setBonusBPTeam] = useState("");
+  const [bonusBPPlayer, setBonusBPPlayer] = useState("");
 
   // Modal bienvenida (usuarios no logueados)
   const [showModal, setShowModal] = useState(false);
@@ -181,6 +344,21 @@ export default function TournamentDetailPage() {
     const unsub = subscribeUserPredictions(user.uid, setPredictions);
     return unsub;
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !id) return;
+    const unsub = subscribeBonusPrediction(user.uid, id, (pred) => {
+      setBonusPred(pred);
+      if (pred) {
+        setBonusChampion(pred.champion || "");
+        setBonusTSTeam(pred.topScorerTeam || "");
+        setBonusTSPlayer(pred.topScorerPlayer || "");
+        setBonusBPTeam(pred.bestPlayerTeam || "");
+        setBonusBPPlayer(pred.bestPlayerPlayer || "");
+      }
+    });
+    return unsub;
+  }, [user, id]);
 
   // Mostrar modal después de 1 segundo si no hay sesión y el torneo cargó
   useEffect(() => {
@@ -264,6 +442,26 @@ export default function TournamentDetailPage() {
     finally { setSaving(null); }
   }
 
+  async function handleSaveBonus() {
+    if (!user) return;
+    setBonusSaving(true);
+    try {
+      await saveBonusPrediction(user.uid, id, {
+        champion: bonusChampion,
+        topScorerTeam: bonusTSTeam,
+        topScorerPlayer: bonusTSPlayer,
+        bestPlayerTeam: bonusBPTeam,
+        bestPlayerPlayer: bonusBPPlayer,
+      });
+      setBonusToast(true);
+      setTimeout(() => setBonusToast(false), 2500);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error al guardar bonus");
+    } finally {
+      setBonusSaving(false);
+    }
+  }
+
   async function handleSaveInfo() {
     if (!tournament) return;
     setAdminSaving(true);
@@ -325,7 +523,7 @@ export default function TournamentDetailPage() {
   return (
     <div className="max-w-2xl mx-auto">
 
-      {/* Toast */}
+      {/* Toasts */}
       <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-green-500 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-lg transition-all duration-300 ${
         toast ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
       }`}>
@@ -333,6 +531,14 @@ export default function TournamentDetailPage() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
         Partido guardado
+      </div>
+      <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-yellow-400 text-gray-900 text-sm font-semibold px-5 py-3 rounded-xl shadow-lg transition-all duration-300 ${
+        bonusToast ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+      }`}>
+        <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        Bonus guardado
       </div>
 
       {/* Banner unirse */}
@@ -496,9 +702,9 @@ export default function TournamentDetailPage() {
             )}
           </div>
 
-          {/* Group tabs */}
+          {/* Group tabs + Bonus */}
           {activePhase === "group" && (
-            <div className="flex gap-1.5 flex-wrap mb-4">
+            <div className="flex gap-1.5 flex-wrap mb-4 items-center">
               {"ABCDEFGHIJKL".split("").map((g) => {
                 const gMatches = allMatches.filter((m) => m.phase === "group" && m.group === g);
                 const gDone = gMatches.length > 0 && gMatches.every((m) => predMap[m.id]);
@@ -514,41 +720,72 @@ export default function TournamentDetailPage() {
                   </button>
                 );
               })}
+              <div className="w-px h-5 bg-gray-700 mx-0.5" />
+              <button
+                onClick={() => setActiveGroup("BONUS")}
+                className={`px-3 h-8 rounded font-bold text-sm transition-colors flex items-center gap-1.5 ${
+                  activeGroup === "BONUS"
+                    ? "bg-yellow-400 text-gray-900"
+                    : bonusPred && (bonusPred.champion || bonusPred.topScorerPlayer || bonusPred.bestPlayerPlayer)
+                    ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                ★ Bonus
+              </button>
             </div>
           )}
 
-          <div className="flex flex-col gap-2">
-            {shownMatches.map((match) => (
-              <div key={match.id} className="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2.5 flex flex-col sm:flex-row sm:items-center gap-2">
-                {/* Teams */}
-                <div className="flex-1 flex items-center gap-2 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-1 justify-end">
-                    <span className="font-semibold text-sm text-white text-right">{match.homeTeam}</span>
-                    <Flag code={match.homeFlagCode} />
+          {activeGroup === "BONUS" ? (
+            <BonusPanel
+              isMember={isMember}
+              champion={bonusChampion}
+              tsTeam={bonusTSTeam}
+              tsPlayer={bonusTSPlayer}
+              bpTeam={bonusBPTeam}
+              bpPlayer={bonusBPPlayer}
+              onChampion={(v) => setBonusChampion(v)}
+              onTSTeam={(v) => { setBonusTSTeam(v); setBonusTSPlayer(""); }}
+              onTSPlayer={(v) => setBonusTSPlayer(v)}
+              onBPTeam={(v) => { setBonusBPTeam(v); setBonusBPPlayer(""); }}
+              onBPPlayer={(v) => setBonusBPPlayer(v)}
+              onSave={handleSaveBonus}
+              saving={bonusSaving}
+            />
+          ) : (
+            <div className="flex flex-col gap-2">
+              {shownMatches.map((match) => (
+                <div key={match.id} className="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2.5 flex flex-col sm:flex-row sm:items-center gap-2">
+                  {/* Teams */}
+                  <div className="flex-1 flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-1 justify-end">
+                      <span className="font-semibold text-sm text-white text-right">{match.homeTeam}</span>
+                      <Flag code={match.homeFlagCode} />
+                    </div>
+                    <span className="text-gray-600 text-xs font-bold flex-shrink-0">vs</span>
+                    <div className="flex items-center gap-1.5 flex-1">
+                      <Flag code={match.awayFlagCode} />
+                      <span className="font-semibold text-sm text-white">{match.awayTeam}</span>
+                    </div>
                   </div>
-                  <span className="text-gray-600 text-xs font-bold flex-shrink-0">vs</span>
-                  <div className="flex items-center gap-1.5 flex-1">
-                    <Flag code={match.awayFlagCode} />
-                    <span className="font-semibold text-sm text-white">{match.awayTeam}</span>
+
+                  {/* Date */}
+                  <div className="text-xs text-gray-500 text-right sm:w-36 flex-shrink-0">
+                    {formatDate(match.date)}
+                  </div>
+
+                  {/* Prediction */}
+                  <div className="sm:w-40 flex justify-end flex-shrink-0">
+                    {user && isMember ? (
+                      <PredInput match={match} prediction={predMap[match.id]} onSave={handleSavePred} saving={saving === match.id} />
+                    ) : match.homeScore !== null ? (
+                      <span className="text-sm font-bold text-white">{match.homeScore} - {match.awayScore}</span>
+                    ) : null}
                   </div>
                 </div>
-
-                {/* Date */}
-                <div className="text-xs text-gray-500 text-right sm:w-36 flex-shrink-0">
-                  {formatDate(match.date)}
-                </div>
-
-                {/* Prediction */}
-                <div className="sm:w-40 flex justify-end flex-shrink-0">
-                  {user && isMember ? (
-                    <PredInput match={match} prediction={predMap[match.id]} onSave={handleSavePred} saving={saving === match.id} />
-                  ) : match.homeScore !== null ? (
-                    <span className="text-sm font-bold text-white">{match.homeScore} - {match.awayScore}</span>
-                  ) : null}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
