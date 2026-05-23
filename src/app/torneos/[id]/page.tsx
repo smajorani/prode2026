@@ -161,7 +161,7 @@ function PlayerSelect({ team, value, onChange }: {
           <div className="max-h-60 overflow-y-auto">
             {groups.map(({ label, players }) => (
               <div key={label}>
-                <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-yellow-400/80 bg-gray-900/80 sticky top-0">
+                <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-yellow-400/80 bg-gray-900 sticky top-0">
                   {label}
                 </div>
                 {players.map((p) => (
