@@ -53,6 +53,7 @@
   - **Botón "Al azar"**: rellena con resultados ponderados por probabilidad histórica los partidos sin predicción del grupo/fase activa (usa `src/lib/scores.ts`)
   - **Tabs de fase**: grisados y no clickeables en el fixture del torneo cuando la fase no tiene equipos reales aún (etapas eliminatorias con placeholders). En el fixture público `/fixture` siempre están habilitados
   - **Tabs de grupo**: se ponen verde suave cuando todos los partidos del grupo tienen predicción
+  - **Tab Bonus**: botón `★ Bonus` a la derecha de las letras A–L. Muestra panel con 3 predicciones especiales (ver sección Bonus más abajo)
 - Tab **Admin** (solo para admins del torneo): editar nombre/descripción, gestionar miembros (promover/degradar admin, quitar)
 - **Modal de bienvenida** para usuarios no autenticados que abren un link de invitación: muestra nombre del torneo, permite registro con Google o email, "Ya tengo cuenta" → `/login?redirect=...`
 - **Auto-join**: si la URL tiene `?action=invite` y el usuario no es miembro → join automático 500ms post-auth. Si no tiene el param, no auto-join (evita que usuarios removidos por un admin se re-unan solos)
@@ -63,6 +64,29 @@
 - Jugadores con el mismo puntaje muestran el **mismo puesto** (1°, 1°, 3°, ...)
 - Orden de visualización cuando hay empate: exactos desc → parciales desc → nombre asc
 - Aplica tanto en la tabla del torneo como en las cards de "Mis torneos"
+
+### Bonus predictions (`/torneos/[id]` → tab Fixture → botón ★ Bonus)
+- Aparece como botón a la derecha de las letras de grupo (A–L) en el fixture del torneo
+- Se pone verde cuando hay alguna predicción bonus guardada
+- **3 categorías:**
+  - **Campeón**: dropdown con los 48 equipos ordenados alfabéticamente
+  - **Goleador**: dropdown de equipo → dropdown de jugador (cascading)
+  - **Mejor jugador**: dropdown de equipo → dropdown de jugador (cascading)
+- El dropdown de jugadores es un componente custom (no `<select>` nativo) con jugadores agrupados por posición: Arqueros / Defensores / Mediocampistas / Delanteros, cada grupo ordenado alfabéticamente
+- Si el equipo no tiene plantel cargado, el dropdown de jugador queda deshabilitado con "Plantel no disponible"
+- **Scoring:**
+  - Campeón exacto: 20 pts
+  - Jugador exacto (goleador/mejor jugador): 15 pts
+  - Solo el equipo correcto (goleador/mejor jugador): 8 pts
+- Guardado en Firestore: `bonusPredictions/{userId}_{tournamentId}`
+- Funciones: `saveBonusPrediction`, `subscribeBonusPrediction` en `src/lib/firestore.ts`
+
+### Planteles (`src/lib/squads.ts`)
+- Los 48 equipos del Mundial con sus planteles completos (fuente: ESPN, mayo 2026)
+- Interface `TeamSquad { flagCode, porteros, defensas, mediocampistas, delanteros }`
+- `SQUADS: Record<string, TeamSquad>` — clave = nombre exacto del equipo en el fixture
+- `ALL_TEAMS` — array con todos los equipos y sus flagCodes para el dropdown de campeón
+- Referencia de estado de carga: `planteles.txt` en la raíz del proyecto
 
 ### Resultados aleatorios ponderados (`src/lib/scores.ts`)
 - `weightedRandomScore()`: devuelve `{home, away}` con probabilidades basadas en frecuencias históricas de resultados de fútbol
@@ -106,6 +130,7 @@ Fixture | Mis torneos | Perfil | Salir
 | `src/lib/tournaments.ts` | CRUD torneos, isTournamentAdmin, subscribeTournament (onSnapshot) |
 | `src/lib/fixture.ts` | Fixture estático completo (104 partidos, datos oficiales FIFA) |
 | `src/lib/scores.ts` | Resultados aleatorios ponderados por probabilidad histórica |
+| `src/lib/squads.ts` | Planteles de los 48 equipos organizados por posición (fuente: ESPN) |
 | `src/lib/scoring.ts` | Lógica de puntuación |
 | `src/types/index.ts` | Types: Match, Prediction, UserProfile, Tournament, Phase, SCORING |
 | `src/context/AuthContext.tsx` | Auth state, ensureUserProfile |
@@ -122,12 +147,14 @@ Fixture | Mis torneos | Perfil | Salir
 
 ## Firestore collections
 - `matches/{matchId}` — partidos con resultados
-- `predictions/{userId}_{matchId}` — predicciones de usuarios
+- `predictions/{userId}_{matchId}` — predicciones de goles de usuarios
+- `bonusPredictions/{userId}_{tournamentId}` — predicciones bonus (champion, topScorerTeam, topScorerPlayer, bestPlayerTeam, bestPlayerPlayer)
 - `users/{uid}` — perfiles (totalPoints, predictionsCount, partialCount, exactCount, photoURL como base64)
 - `tournaments/{tournamentId}` — torneos (id=código 6 chars, admins[], members[])
 
 ## Firestore rules — puntos clave
 - `predictions`: allow delete para soportar borrado de cuenta
+- `bonusPredictions`: allow read pública, write solo al propio userId
 - `tournaments`: allow update si `request.auth.uid in request.resource.data.members` → permite auto-join a cualquier usuario autenticado
 - **Publicar manualmente** en Firebase Console cada vez que cambien
 
@@ -138,3 +165,4 @@ Fixture | Mis torneos | Perfil | Salir
 - Inputs numéricos siempre con clases para ocultar flechas del navegador
 - Toasts: `fixed top-5 left-1/2 -translate-x-1/2` con transición opacity + translateY
 - Tabs de fase en el fixture del torneo: grisado (`opacity-50 cursor-not-allowed`) cuando `homeTeam` contiene `°` o coincide con `/^[WL] /` (placeholder de eliminatoria)
+- Dropdown de jugadores en Bonus: componente custom (no `<select>` nativo) para poder estilizar los headers de posición. Usa `useState` + `useRef` para open/close y click-outside
