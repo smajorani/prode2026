@@ -12,6 +12,7 @@ import {
 } from "@/lib/tournaments";
 import UserAvatar from "@/components/UserAvatar";
 import { subscribeLeaderboard, subscribeMatches, subscribeUserPredictions, savePrediction } from "@/lib/firestore";
+import { weightedRandomScore } from "@/lib/scores";
 import { FIXTURE } from "@/lib/fixture";
 import { auth } from "@/lib/firebase";
 import { Tournament, UserProfile, Match, Prediction, Phase } from "@/types";
@@ -114,6 +115,7 @@ export default function TournamentDetailPage() {
   const [activePhase, setActivePhase] = useState<Phase>("group");
   const [activeGroup, setActiveGroup] = useState("A");
   const [toast, setToast] = useState(false);
+  const [randomFilling, setRandomFilling] = useState(false);
 
   // Modal bienvenida (usuarios no logueados)
   const [showModal, setShowModal] = useState(false);
@@ -223,6 +225,22 @@ export default function TournamentDetailPage() {
       setRegError(e instanceof Error ? e.message : "Error al registrarse");
     } finally {
       setRegLoading(false);
+    }
+  }
+
+  async function handleRandomFill() {
+    if (!user || randomFilling) return;
+    setRandomFilling(true);
+    try {
+      const targets = shownMatches.filter(
+        (m) => !predMap[m.id] && new Date(m.date) > new Date()
+      );
+      for (const match of targets) {
+        const { home, away } = weightedRandomScore();
+        await savePrediction(user.uid, match.id, home, away);
+      }
+    } finally {
+      setRandomFilling(false);
     }
   }
 
@@ -431,29 +449,58 @@ export default function TournamentDetailPage() {
             <p className="text-gray-500 text-sm mb-4">Unite al torneo para guardar tus predicciones.</p>
           )}
 
-          {/* Phase tabs */}
-          <div className="flex gap-1.5 flex-wrap mb-4">
-            {PHASE_ORDER.map((ph) => (
-              <button key={ph} onClick={() => { setActivePhase(ph); if (ph === "group") setActiveGroup("A"); }}
-                className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-                  activePhase === ph ? "bg-yellow-400 text-gray-900" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                }`}>
-                {PHASE_LABELS[ph]}
+          {/* Phase tabs + botón al azar */}
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <div className="flex gap-1.5 flex-wrap">
+              {PHASE_ORDER.map((ph) => {
+                const phMatches = allMatches.filter((m) => m.phase === ph);
+                const phDone = phMatches.length > 0 && phMatches.every((m) => predMap[m.id]);
+                const isActive = activePhase === ph;
+                return (
+                  <button key={ph} onClick={() => { setActivePhase(ph); if (ph === "group") setActiveGroup("A"); }}
+                    className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+                      isActive ? "bg-yellow-400 text-gray-900"
+                      : phDone ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    }`}>
+                    {PHASE_LABELS[ph]}
+                  </button>
+                );
+              })}
+            </div>
+
+            {isMember && (
+              <button
+                onClick={handleRandomFill}
+                disabled={randomFilling || shownMatches.every((m) => predMap[m.id] || new Date(m.date) <= new Date())}
+                className="flex items-center gap-1.5 text-xs bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 px-3 py-1.5 rounded-full font-medium transition-colors disabled:opacity-40 flex-shrink-0"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {randomFilling ? "Llenando..." : "Al azar"}
               </button>
-            ))}
+            )}
           </div>
 
           {/* Group tabs */}
           {activePhase === "group" && (
             <div className="flex gap-1.5 flex-wrap mb-4">
-              {"ABCDEFGHIJKL".split("").map((g) => (
-                <button key={g} onClick={() => setActiveGroup(g)}
-                  className={`w-8 h-8 rounded font-bold text-sm transition-colors ${
-                    activeGroup === g ? "bg-yellow-400 text-gray-900" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                  }`}>
-                  {g}
-                </button>
-              ))}
+              {"ABCDEFGHIJKL".split("").map((g) => {
+                const gMatches = allMatches.filter((m) => m.phase === "group" && m.group === g);
+                const gDone = gMatches.length > 0 && gMatches.every((m) => predMap[m.id]);
+                const isActive = activeGroup === g;
+                return (
+                  <button key={g} onClick={() => setActiveGroup(g)}
+                    className={`w-8 h-8 rounded font-bold text-sm transition-colors ${
+                      isActive ? "bg-yellow-400 text-gray-900"
+                      : gDone ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    }`}>
+                    {g}
+                  </button>
+                );
+              })}
             </div>
           )}
 
