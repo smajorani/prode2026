@@ -456,12 +456,17 @@ export default function TournamentDetailPage() {
                 const phMatches = allMatches.filter((m) => m.phase === ph);
                 const phDone = phMatches.length > 0 && phMatches.every((m) => predMap[m.id]);
                 const isActive = activePhase === ph;
+                const unlocked = ph === "group" || phMatches.some(
+                  (m) => !m.homeTeam.includes("°") && !/^[WL] /.test(m.homeTeam)
+                );
                 return (
-                  <button key={ph} onClick={() => { setActivePhase(ph); if (ph === "group") setActiveGroup("A"); }}
+                  <button key={ph}
+                    onClick={() => { if (!unlocked) return; setActivePhase(ph); if (ph === "group") setActiveGroup("A"); }}
                     className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-                      isActive ? "bg-yellow-400 text-gray-900"
-                      : phDone ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                      !unlocked   ? "bg-gray-800/50 text-gray-600 cursor-not-allowed opacity-50"
+                      : isActive  ? "bg-yellow-400 text-gray-900"
+                      : phDone    ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                      :             "bg-gray-800 text-gray-300 hover:bg-gray-700"
                     }`}>
                     {PHASE_LABELS[ph]}
                   </button>
