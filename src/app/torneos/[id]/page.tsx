@@ -520,6 +520,8 @@ export default function TournamentDetailPage() {
             return savePrediction(user.uid, match.id, home, away);
           })
         );
+        setToast(true);
+        setTimeout(() => setToast(false), 2500);
       }
     } finally {
       setRandomFilling(false);
@@ -531,9 +533,8 @@ export default function TournamentDetailPage() {
   }
 
   async function handleSaveAll() {
-    if (!user || saving) return;
+    if (!user || saving || Object.keys(localEdits).length === 0) return;
     const entries = Object.entries(localEdits).filter(([, v]) => v.home !== "" && v.away !== "");
-    if (entries.length === 0) return;
     setSaving(true);
     try {
       await Promise.all(
@@ -799,7 +800,7 @@ export default function TournamentDetailPage() {
                 {activeGroup !== "BONUS" && (
                   <button
                     onClick={handleSaveAll}
-                    disabled={saving || Object.values(localEdits).filter((v) => v.home !== "" && v.away !== "").length === 0}
+                    disabled={saving || Object.keys(localEdits).length === 0}
                     className="flex items-center gap-1.5 text-xs bg-yellow-400 text-gray-900 font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-40 hover:bg-yellow-300"
                   >
                     {saving ? (
