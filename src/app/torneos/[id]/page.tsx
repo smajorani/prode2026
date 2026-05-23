@@ -794,7 +794,7 @@ export default function TournamentDetailPage() {
             {isMember && (
               <button
                 onClick={handleRandomFill}
-                disabled={randomFilling || shownMatches.every((m) => predMap[m.id] || new Date(m.date) <= new Date())}
+                disabled={randomFilling || (activeGroup !== "BONUS" && shownMatches.every((m) => predMap[m.id] || new Date(m.date) <= new Date()))}
                 className="flex items-center gap-1.5 text-xs bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 px-3 py-1.5 rounded-full font-medium transition-colors disabled:opacity-40 flex-shrink-0"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
