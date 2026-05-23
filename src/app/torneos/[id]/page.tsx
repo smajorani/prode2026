@@ -179,6 +179,13 @@ export default function TournamentDetailPage() {
     return () => clearTimeout(t);
   }, [authLoading, user, loading]);
 
+  // Acceso: si no sos miembro y no venís con ?action=invite → redirigir
+  useEffect(() => {
+    if (authLoading || loading || !tournament) return;
+    if (!user && !isInviteLink) { router.push("/login"); return; }
+    if (user && !isMember && !isInviteLink) { router.push("/mis-predicciones"); }
+  }, [authLoading, loading, user, isMember, isInviteLink, tournament]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Auto-join: solo si llegó por el link de invitación (?action=invite)
   useEffect(() => {
     if (!user || isMember || !tournament || loading || autoJoinFired.current || !isInviteLink) return;
@@ -322,7 +329,7 @@ export default function TournamentDetailPage() {
           <h1 className="text-xl font-bold text-white">{tournament.name}</h1>
           <p className="text-gray-500 text-sm">{tournament.members.length} {tournament.members.length === 1 ? "participante" : "participantes"}</p>
         </div>
-        <button onClick={share}
+        {isAdmin && <button onClick={share}
           className={`flex items-center gap-2 border rounded-lg px-4 py-2 text-sm transition-all mt-5 ${
             copied ? "border-yellow-400/50 text-yellow-400 bg-yellow-400/10" : "border-gray-700 text-gray-300 bg-gray-800 hover:bg-gray-700"
           }`}>
@@ -337,7 +344,7 @@ export default function TournamentDetailPage() {
               <span className="font-mono text-xs text-yellow-400 tracking-widest">{tournament.id}</span>
             </>
           )}
-        </button>
+        </button>}
       </div>
 
       {/* Tabs */}
