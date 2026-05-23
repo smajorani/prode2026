@@ -42,6 +42,14 @@ export interface ScoringResult {
   reason: "exact" | "winner_and_diff" | "winner_only" | "one_team_goals" | "miss";
 }
 
+export interface Tournament {
+  id: string;        // código de 6 chars, ej: "XKQW3A"
+  name: string;
+  createdBy: string; // userId
+  members: string[]; // userIds
+  createdAt: string;
+}
+
 export const SCORING: Record<Phase, Record<ScoringResult["reason"], number>> = {
   group: {
     exact: 5,
