@@ -11,7 +11,7 @@ import {
   subscribeTournament,
 } from "@/lib/tournaments";
 import UserAvatar from "@/components/UserAvatar";
-import { getLeaderboard, subscribeMatches, subscribeUserPredictions, savePrediction } from "@/lib/firestore";
+import { subscribeLeaderboard, subscribeMatches, subscribeUserPredictions, savePrediction } from "@/lib/firestore";
 import { FIXTURE } from "@/lib/fixture";
 import { auth } from "@/lib/firebase";
 import { Tournament, UserProfile, Match, Prediction, Phase } from "@/types";
@@ -127,44 +127,36 @@ export default function TournamentDetailPage() {
   const autoJoinFired = useRef(false);
 
   const membersRef = useRef<string[]>([]);
+  const allUsersRef = useRef<UserProfile[]>([]);
 
   useEffect(() => {
-    let allUsers: UserProfile[] = [];
-    getLeaderboard().then((u) => { allUsers = u; });
+    function rebuild() {
+      const ids = membersRef.current;
+      setMembers(
+        allUsersRef.current
+          .filter((u) => ids.includes(u.uid))
+          .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
+      );
+    }
 
-    const unsub = subscribeTournament(id, (t) => {
-      if (!t) { router.push("/mis-predicciones"); return; }
-
+    const unsubTournament = subscribeTournament(id, (t) => {
       setTournament((prev) => {
-        if (!prev) {
-          setEditName(t.name);
-          setEditDesc(t.description ?? "");
-        }
+        if (!prev) { setEditName(t.name); setEditDesc(t.description ?? ""); }
         return t;
       });
-
       const uid = auth.currentUser?.uid;
       if (uid && t.members.includes(uid)) setCurrentTournament(t);
-
-      // Si cambió la lista de miembros, re-fetch perfiles y actualizar
-      const prevIds = membersRef.current;
-      const newIds = t.members;
-      const changed = newIds.length !== prevIds.length || newIds.some((id) => !prevIds.includes(id));
-      membersRef.current = newIds;
-
-      if (changed) {
-        getLeaderboard().then((u) => {
-          allUsers = u;
-          setMembers(u.filter((p) => newIds.includes(p.uid)).sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0)));
-          setLoading(false);
-        });
-      } else {
-        setMembers(allUsers.filter((p) => newIds.includes(p.uid)).sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0)));
-        setLoading(false);
-      }
+      membersRef.current = t.members;
+      rebuild();
+      setLoading(false);
     });
 
-    return unsub;
+    const unsubUsers = subscribeLeaderboard((users) => {
+      allUsersRef.current = users;
+      rebuild();
+    });
+
+    return () => { unsubTournament(); unsubUsers(); };
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
