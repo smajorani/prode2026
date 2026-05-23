@@ -95,7 +95,6 @@ export default function TournamentDetailPage() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [members, setMembers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [joining, setJoining] = useState(false);
   const [copied, setCopied] = useState(false);
 
   // Admin panel state
@@ -124,6 +123,7 @@ export default function TournamentDetailPage() {
 
   const isMember = !!user && (tournament?.members.includes(user.uid) ?? false);
   const isAdmin = !!user && !!tournament && isTournamentAdmin(tournament, user.uid);
+  const autoJoinFired = useRef(false);
 
   useEffect(() => {
     async function load() {
@@ -163,24 +163,27 @@ export default function TournamentDetailPage() {
     return () => clearTimeout(t);
   }, [authLoading, user, loading]);
 
-  async function joinAfterAuth(uid: string) {
-    if (!tournament) return;
-    try {
-      const t = await joinTournament(uid, id);
-      await refreshTournaments();
-      setCurrentTournament(t);
-      setTournament(t);
-      const allUsers = await getLeaderboard();
-      setMembers(allUsers.filter((u) => t.members.includes(u.uid)).sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0)));
-    } catch { /* ya era miembro o error silencioso */ }
-  }
+  // Auto-join: usuario logueado que no es miembro → unirse automáticamente
+  useEffect(() => {
+    if (!user || isMember || !tournament || loading || autoJoinFired.current) return;
+    autoJoinFired.current = true;
+    const timer = setTimeout(async () => {
+      try {
+        const t = await joinTournament(user.uid, id);
+        await refreshTournaments();
+        setCurrentTournament(t);
+        setTournament(t);
+        const allUsers = await getLeaderboard();
+        setMembers(allUsers.filter((u) => t.members.includes(u.uid)).sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0)));
+      } catch { /* silent */ }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [user, isMember, tournament, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleGoogleAuth() {
     setRegError("");
     try {
       await loginWithGoogle();
-      const uid = auth.currentUser?.uid;
-      if (uid) await joinAfterAuth(uid);
       setShowModal(false);
     } catch {
       setRegError("No se pudo iniciar sesión con Google");
@@ -194,30 +197,11 @@ export default function TournamentDetailPage() {
     setRegLoading(true); setRegError("");
     try {
       await registerWithEmail(regEmail, regPassword, regName);
-      const uid = auth.currentUser?.uid;
-      if (uid) await joinAfterAuth(uid);
       setShowModal(false);
     } catch (e) {
       setRegError(e instanceof Error ? e.message : "Error al registrarse");
     } finally {
       setRegLoading(false);
-    }
-  }
-
-  async function handleJoin() {
-    if (!user) { router.push(`/login?redirect=/torneos/${id}`); return; }
-    setJoining(true);
-    try {
-      const t = await joinTournament(user.uid, id);
-      await refreshTournaments();
-      setCurrentTournament(t);
-      setTournament(t);
-      const allUsers = await getLeaderboard();
-      setMembers(allUsers.filter((u) => t.members.includes(u.uid)).sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0)));
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Error al unirse");
-    } finally {
-      setJoining(false);
     }
   }
 
@@ -305,16 +289,10 @@ export default function TournamentDetailPage() {
       </div>
 
       {/* Banner unirse */}
-      {!isMember && (
-        <div className="bg-yellow-400/10 border border-yellow-400/40 rounded-xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex-1">
-            <p className="text-white font-semibold">Te invitaron a <span className="text-yellow-400">{tournament.name}</span></p>
-            <p className="text-gray-400 text-sm mt-0.5">Sumate para participar y completar tus prodes.</p>
-          </div>
-          <button onClick={handleJoin} disabled={joining}
-            className="bg-yellow-400 text-gray-900 font-bold px-6 py-2.5 rounded-lg hover:bg-yellow-300 disabled:opacity-50 whitespace-nowrap text-sm">
-            {joining ? "Uniéndose..." : user ? "Unirme" : "Iniciá sesión para unirte"}
-          </button>
+      {!isMember && user && (
+        <div className="bg-yellow-400/10 border border-yellow-400/40 rounded-xl p-4 mb-6 flex items-center gap-3">
+          <div className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+          <p className="text-sm text-white">Uniéndote a <span className="font-semibold text-yellow-400">{tournament.name}</span>...</p>
         </div>
       )}
 
