@@ -9,6 +9,7 @@ import {
   query,
   where,
   getDocs,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { Tournament } from "@/types";
@@ -62,6 +63,12 @@ export async function getUserTournaments(userId: string): Promise<Tournament[]> 
 export async function getTournament(id: string): Promise<Tournament | null> {
   const snap = await getDoc(doc(db, "tournaments", id));
   return snap.exists() ? (snap.data() as Tournament) : null;
+}
+
+export function subscribeTournament(id: string, onChange: (t: Tournament) => void): () => void {
+  return onSnapshot(doc(db, "tournaments", id), (snap) => {
+    if (snap.exists()) onChange(snap.data() as Tournament);
+  });
 }
 
 // ── Admin functions ───────────────────────────────────────────────────────

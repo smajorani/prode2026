@@ -8,6 +8,7 @@ import { useTournament } from "@/context/TournamentContext";
 import {
   getTournament, joinTournament, isTournamentAdmin,
   updateTournamentInfo, removeMember, promoteToAdmin, demoteAdmin,
+  subscribeTournament,
 } from "@/lib/tournaments";
 import UserAvatar from "@/components/UserAvatar";
 import { getLeaderboard, subscribeMatches, subscribeUserPredictions, savePrediction } from "@/lib/firestore";
@@ -125,24 +126,45 @@ export default function TournamentDetailPage() {
   const isAdmin = !!user && !!tournament && isTournamentAdmin(tournament, user.uid);
   const autoJoinFired = useRef(false);
 
+  const membersRef = useRef<string[]>([]);
+
   useEffect(() => {
-    async function load() {
-      const t = await getTournament(id);
+    let allUsers: UserProfile[] = [];
+    getLeaderboard().then((u) => { allUsers = u; });
+
+    const unsub = subscribeTournament(id, (t) => {
       if (!t) { router.push("/mis-predicciones"); return; }
-      setTournament(t);
-      setEditName(t.name);
-      setEditDesc(t.description ?? "");
+
+      setTournament((prev) => {
+        if (!prev) {
+          setEditName(t.name);
+          setEditDesc(t.description ?? "");
+        }
+        return t;
+      });
+
       const uid = auth.currentUser?.uid;
       if (uid && t.members.includes(uid)) setCurrentTournament(t);
 
-      const allUsers = await getLeaderboard();
-      setMembers(
-        allUsers.filter((u) => t.members.includes(u.uid))
-          .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
-      );
-      setLoading(false);
-    }
-    load();
+      // Si cambió la lista de miembros, re-fetch perfiles y actualizar
+      const prevIds = membersRef.current;
+      const newIds = t.members;
+      const changed = newIds.length !== prevIds.length || newIds.some((id) => !prevIds.includes(id));
+      membersRef.current = newIds;
+
+      if (changed) {
+        getLeaderboard().then((u) => {
+          allUsers = u;
+          setMembers(u.filter((p) => newIds.includes(p.uid)).sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0)));
+          setLoading(false);
+        });
+      } else {
+        setMembers(allUsers.filter((p) => newIds.includes(p.uid)).sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0)));
+        setLoading(false);
+      }
+    });
+
+    return unsub;
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
