@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -12,6 +12,7 @@ import {
 import UserAvatar from "@/components/UserAvatar";
 import { getLeaderboard, subscribeMatches, subscribeUserPredictions, savePrediction } from "@/lib/firestore";
 import { FIXTURE } from "@/lib/fixture";
+import { auth } from "@/lib/firebase";
 import { Tournament, UserProfile, Match, Prediction, Phase } from "@/types";
 
 // ── Fixture helpers ───────────────────────────────────────────────────────
@@ -86,7 +87,7 @@ function PredInput({ match, prediction, onSave, saving }: {
 
 export default function TournamentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, loading: authLoading, loginWithGoogle, registerWithEmail } = useAuth();
   const { setCurrentTournament, refreshTournaments } = useTournament();
   const router = useRouter();
 
@@ -111,6 +112,15 @@ export default function TournamentDetailPage() {
   const [activePhase, setActivePhase] = useState<Phase>("group");
   const [activeGroup, setActiveGroup] = useState("A");
   const [toast, setToast] = useState(false);
+
+  // Modal bienvenida (usuarios no logueados)
+  const [showModal, setShowModal] = useState(false);
+  const [modalView, setModalView] = useState<"welcome" | "email">("welcome");
+  const [regName, setRegName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState("");
 
   const isMember = !!user && (tournament?.members.includes(user.uid) ?? false);
   const isAdmin = !!user && !!tournament && isTournamentAdmin(tournament, user.uid);
@@ -144,6 +154,54 @@ export default function TournamentDetailPage() {
     const unsub = subscribeUserPredictions(user.uid, setPredictions);
     return unsub;
   }, [user]);
+
+  // Mostrar modal después de 1 segundo si no hay sesión y el torneo cargó
+  useEffect(() => {
+    if (authLoading || user || loading) return;
+    const t = setTimeout(() => setShowModal(true), 1000);
+    return () => clearTimeout(t);
+  }, [authLoading, user, loading]);
+
+  async function joinAfterAuth(uid: string) {
+    if (!tournament) return;
+    try {
+      const t = await joinTournament(uid, id);
+      await refreshTournaments();
+      setCurrentTournament(t);
+      setTournament(t);
+      const allUsers = await getLeaderboard();
+      setMembers(allUsers.filter((u) => t.members.includes(u.uid)).sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0)));
+    } catch { /* ya era miembro o error silencioso */ }
+  }
+
+  async function handleGoogleAuth() {
+    setRegError("");
+    try {
+      await loginWithGoogle();
+      const uid = auth.currentUser?.uid;
+      if (uid) await joinAfterAuth(uid);
+      setShowModal(false);
+    } catch {
+      setRegError("No se pudo iniciar sesión con Google");
+    }
+  }
+
+  async function handleEmailRegister() {
+    if (!regName.trim() || !regEmail.trim() || !regPassword.trim()) {
+      setRegError("Completá todos los campos"); return;
+    }
+    setRegLoading(true); setRegError("");
+    try {
+      await registerWithEmail(regEmail, regPassword, regName);
+      const uid = auth.currentUser?.uid;
+      if (uid) await joinAfterAuth(uid);
+      setShowModal(false);
+    } catch (e) {
+      setRegError(e instanceof Error ? e.message : "Error al registrarse");
+    } finally {
+      setRegLoading(false);
+    }
+  }
 
   async function handleJoin() {
     if (!user) { router.push(`/login?redirect=/torneos/${id}`); return; }
@@ -262,8 +320,11 @@ export default function TournamentDetailPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
         <div>
-          <Link href="/mis-predicciones" className="text-xs text-gray-500 hover:text-gray-300 transition-colors mb-1 inline-block">
-            ← Mis torneos
+          <Link href="/mis-predicciones" className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-200 transition-colors mb-2 group">
+            <svg className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Mis torneos
           </Link>
           <h1 className="text-xl font-bold text-white">{tournament.name}</h1>
           <p className="text-gray-500 text-sm">{tournament.members.length} {tournament.members.length === 1 ? "participante" : "participantes"}</p>
@@ -546,6 +607,107 @@ export default function TournamentDetailPage() {
                 );
               })}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL BIENVENIDA (usuarios sin sesión) ── */}
+      {showModal && !user && tournament && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative bg-gray-900 border border-gray-800 rounded-2xl p-7 w-full max-w-sm shadow-2xl">
+
+            {modalView === "welcome" ? (
+              <>
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Te invitaron a</p>
+                <h2 className="text-2xl font-bold text-white mb-1">{tournament.name}</h2>
+                <p className="text-sm text-gray-400 mb-7">
+                  {tournament.members.length} {tournament.members.length === 1 ? "participante" : "participantes"} · Registrate para predecir y competir.
+                </p>
+
+                {/* Google */}
+                <button onClick={handleGoogleAuth}
+                  className="w-full flex items-center justify-center gap-3 bg-white text-gray-900 font-semibold py-3 rounded-xl mb-3 hover:bg-gray-100 transition-colors text-sm">
+                  <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Continuar con Google
+                </button>
+
+                {/* Email */}
+                <button onClick={() => { setModalView("email"); setRegError(""); }}
+                  className="w-full bg-yellow-400 text-gray-900 font-bold py-3 rounded-xl mb-5 hover:bg-yellow-300 transition-colors text-sm">
+                  Registrarse con email
+                </button>
+
+                {regError && <p className="text-red-400 text-xs text-center mb-3">{regError}</p>}
+
+                {/* Ya tengo cuenta */}
+                <div className="text-center border-t border-gray-800 pt-4">
+                  <button
+                    onClick={() => router.push(`/login?redirect=/torneos/${id}`)}
+                    className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                  >
+                    Ya tengo cuenta · <span className="text-gray-300 font-medium">Ingresar</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <button onClick={() => { setModalView("welcome"); setRegError(""); }}
+                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors mb-5">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Volver
+                </button>
+                <h2 className="text-xl font-bold text-white mb-5">Crear cuenta</h2>
+
+                <div className="flex flex-col gap-3 mb-4">
+                  <input
+                    placeholder="Tu nombre"
+                    value={regName}
+                    onChange={(e) => setRegName(e.target.value)}
+                    className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400"
+                    autoFocus
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Contraseña"
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleEmailRegister()}
+                    className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400"
+                  />
+                </div>
+
+                {regError && <p className="text-red-400 text-xs mb-3">{regError}</p>}
+
+                <button onClick={handleEmailRegister} disabled={regLoading}
+                  className="w-full bg-yellow-400 text-gray-900 font-bold py-3 rounded-xl mb-4 hover:bg-yellow-300 disabled:opacity-50 transition-colors text-sm">
+                  {regLoading ? "Creando cuenta..." : "Crear cuenta y unirme"}
+                </button>
+
+                <div className="text-center">
+                  <button
+                    onClick={() => router.push(`/login?redirect=/torneos/${id}`)}
+                    className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                  >
+                    Ya tengo cuenta · <span className="text-gray-300 font-medium">Ingresar</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
