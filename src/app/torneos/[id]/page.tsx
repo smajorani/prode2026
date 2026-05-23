@@ -100,6 +100,7 @@ export default function TournamentDetailPage() {
   // Admin panel state
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
+  const [editingName, setEditingName] = useState(false);
   const [adminSaving, setAdminSaving] = useState(false);
   const [memberAction, setMemberAction] = useState<string | null>(null);
 
@@ -412,12 +413,30 @@ export default function TournamentDetailPage() {
             <div className="flex flex-col gap-3">
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Nombre</label>
-                <input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  maxLength={40}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-400"
-                />
+                {editingName ? (
+                  <div className="flex gap-2">
+                    <input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      maxLength={40}
+                      autoFocus
+                      className="flex-1 bg-gray-800 border border-yellow-400 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+                    />
+                    <button onClick={() => setEditingName(false)} className="text-xs text-gray-500 hover:text-gray-300 px-2">
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-300 text-sm">{editName || tournament.name}</span>
+                    <button onClick={() => setEditingName(true)} title="Editar nombre"
+                      className="text-gray-600 hover:text-yellow-400 transition-colors">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Descripción (opcional)</label>
@@ -426,7 +445,7 @@ export default function TournamentDetailPage() {
                   onChange={(e) => setEditDesc(e.target.value)}
                   maxLength={200}
                   rows={2}
-                  placeholder="Ej: Torneo de la familia Majorani, se juega con plata..."
+                  placeholder="Agregar descripción..."
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-400 resize-none"
                 />
               </div>
