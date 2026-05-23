@@ -273,7 +273,7 @@ export default function TournamentDetailPage() {
 
       {/* Tabs */}
       <div className="flex items-center gap-3 mt-5 mb-5">
-        <div className="flex bg-gray-900 border border-gray-800 rounded-xl p-1 gap-0">
+        <div className="flex bg-gray-900 border border-gray-800 rounded-xl p-1">
           {(["tabla", "fixture"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
@@ -282,20 +282,19 @@ export default function TournamentDetailPage() {
               {t === "tabla" ? "Tabla" : "Fixture"}
             </button>
           ))}
-
-          {isAdmin && (
-            <>
-              <div className="w-px bg-gray-700 mx-1 my-1" />
-              <button
-                onClick={() => setTab(tab === "admin" ? "tabla" : "admin")}
-                className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
-                  tab === "admin" ? "bg-yellow-400 text-gray-900 shadow-sm" : "text-gray-400 hover:text-white"
-                }`}>
-                ⚙ Admin
-              </button>
-            </>
-          )}
         </div>
+
+        {isAdmin && (
+          <div className="flex bg-gray-900 border border-gray-800 rounded-xl p-1">
+            <button
+              onClick={() => setTab(tab === "admin" ? "tabla" : "admin")}
+              className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
+                tab === "admin" ? "bg-yellow-400 text-gray-900 shadow-sm" : "text-gray-400 hover:text-white"
+              }`}>
+              ⚙ Admin
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── TABLA ── */}
