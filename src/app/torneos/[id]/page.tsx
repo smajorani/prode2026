@@ -132,7 +132,8 @@ export default function TournamentDetailPage() {
       setTournament(t);
       setEditName(t.name);
       setEditDesc(t.description ?? "");
-      if (user && t.members.includes(user.uid)) setCurrentTournament(t);
+      const uid = auth.currentUser?.uid;
+      if (uid && t.members.includes(uid)) setCurrentTournament(t);
 
       const allUsers = await getLeaderboard();
       setMembers(
@@ -142,7 +143,7 @@ export default function TournamentDetailPage() {
       setLoading(false);
     }
     load();
-  }, [id, user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const unsub = subscribeMatches(setMatches);
