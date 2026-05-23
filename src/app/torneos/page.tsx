@@ -141,10 +141,12 @@ export default function TorneosPage() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => navigator.clipboard.writeText(created.id)}
+                    onClick={() => navigator.clipboard.writeText(
+                      `Te invito a sumarte a mi torneo de prode del Mundial 2026: https://www.prode2026.ar/torneos/${created.id}`
+                    )}
                     className="flex-1 border border-gray-700 py-2 rounded-lg text-sm hover:bg-gray-800 transition-colors"
                   >
-                    Copiar código
+                    Copiar invitación
                   </button>
                   <button
                     onClick={() => { setModal(null); setCreated(null); router.push("/fixture"); }}

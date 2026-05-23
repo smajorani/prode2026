@@ -39,7 +39,9 @@ export default function TournamentDetailPage() {
 
   function copyCode() {
     if (!tournament) return;
-    navigator.clipboard.writeText(tournament.id);
+    navigator.clipboard.writeText(
+      `Te invito a sumarte a mi torneo de prode del Mundial 2026: https://www.prode2026.ar/torneos/${tournament.id}`
+    );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
