@@ -1,133 +1,117 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { subscribeMatches, subscribeUserPredictions } from "@/lib/firestore";
-import { Match, Prediction } from "@/types";
-import { calculateScore } from "@/lib/scoring";
+import { useTournament } from "@/context/TournamentContext";
+import { getLeaderboard } from "@/lib/firestore";
+import { UserProfile } from "@/types";
 
-const REASON_LABELS = {
-  exact: "Exacto",
-  winner_and_diff: "Ganador + diferencia",
-  winner_only: "Solo ganador",
-  one_team_goals: "Goles de un equipo",
-  miss: "Errado",
-};
+function rankEmoji(pos: number) {
+  if (pos === 1) return "🥇";
+  if (pos === 2) return "🥈";
+  if (pos === 3) return "🥉";
+  return `#${pos}`;
+}
 
-export default function MisPrediccionesPage() {
-  const { user, loading } = useAuth();
+export default function MisProdesPage() {
+  const { user, loading: authLoading } = useAuth();
+  const { tournaments, setCurrentTournament } = useTournament();
   const router = useRouter();
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
+  const [usersLoading, setUsersLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) router.push("/login");
-  }, [user, loading, router]);
+    if (!authLoading && !user) router.push("/login");
+  }, [user, authLoading, router]);
 
   useEffect(() => {
-    const unsub = subscribeMatches(setMatches);
-    return unsub;
+    getLeaderboard().then((u) => { setAllUsers(u); setUsersLoading(false); });
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
-    const unsub = subscribeUserPredictions(user.uid, setPredictions);
-    return unsub;
-  }, [user]);
+  if (authLoading || !user) return null;
 
-  if (loading || !user) return null;
+  const meProfile = allUsers.find((u) => u.uid === user.uid);
 
-  const matchMap = Object.fromEntries(matches.map((m) => [m.id, m]));
-  const sorted = [...predictions].sort((a, b) => {
-    const ma = matchMap[a.matchId];
-    const mb = matchMap[b.matchId];
-    return (ma?.date ?? "").localeCompare(mb?.date ?? "");
+  // Para cada torneo, calcular posición del usuario
+  const tournamentCards = tournaments.map((t) => {
+    const members = allUsers
+      .filter((u) => t.members.includes(u.uid))
+      .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+
+    const myPos = members.findIndex((u) => u.uid === user.uid) + 1;
+    const myPoints = meProfile?.totalPoints ?? 0;
+    const myExact = meProfile?.exactCount ?? 0;
+
+    return { tournament: t, members, myPos, myPoints, myExact };
   });
 
-  const totalPoints = predictions.reduce((s, p) => s + (p.points ?? 0), 0);
-  const played = predictions.filter((p) => p.points !== null).length;
-  const exactCount = predictions.filter((p) => {
-    const m = matchMap[p.matchId];
-    if (!m) return false;
-    const { reason } = calculateScore(m, p);
-    return reason === "exact";
-  }).length;
-
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-2">Mis Predicciones</h1>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-yellow-400">{totalPoints}</div>
-          <div className="text-xs text-gray-400 mt-0.5">Puntos totales</div>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-white">{predictions.length}</div>
-          <div className="text-xs text-gray-400 mt-0.5">Predicciones</div>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-white">{exactCount}</div>
-          <div className="text-xs text-gray-400 mt-0.5">Exactos</div>
-        </div>
+    <div className="max-w-2xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-white">Mis Prodes</h1>
+        <Link
+          href="/torneos"
+          className="text-sm bg-yellow-400 text-gray-900 font-bold px-4 py-2 rounded-lg hover:bg-yellow-300 transition-colors"
+        >
+          + Crear / Unirse
+        </Link>
       </div>
 
-      {sorted.length === 0 && (
-        <p className="text-gray-400 text-sm">
-          Todavía no hiciste ninguna predicción.{" "}
-          <a href="/fixture" className="text-yellow-400 underline">Ir al fixture</a>
-        </p>
+      {tournaments.length === 0 && (
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-10 text-center">
+          <p className="text-gray-300 font-semibold text-lg mb-1">No estás en ningún prode todavía</p>
+          <p className="text-gray-500 text-sm mb-5">Creá uno o pedile el código a alguien.</p>
+          <Link
+            href="/torneos"
+            className="bg-yellow-400 text-gray-900 font-bold px-6 py-2.5 rounded-lg hover:bg-yellow-300 transition-colors"
+          >
+            Ir a Torneos
+          </Link>
+        </div>
       )}
 
-      <div className="flex flex-col gap-2">
-        {sorted.map((pred) => {
-          const match = matchMap[pred.matchId];
-          if (!match) return null;
-
-          const played = match.homeScore !== null;
-          const result = played ? calculateScore(match, pred) : null;
-
-          return (
-            <div
-              key={pred.id}
-              className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-4"
-            >
-              {/* Teams */}
-              <div className="flex-1 text-sm">
-                <span className="font-semibold">{match.homeTeam}</span>
-                <span className="text-gray-500 mx-2">vs</span>
-                <span className="font-semibold">{match.awayTeam}</span>
-              </div>
-
-              {/* My prediction */}
-              <div className="text-sm text-gray-300">
-                Mi prode: <span className="font-bold">{pred.homeScore} - {pred.awayScore}</span>
-              </div>
-
-              {/* Real result */}
-              {played && (
-                <div className="text-sm text-gray-400">
-                  Real: <span className="font-bold text-white">{match.homeScore} - {match.awayScore}</span>
-                </div>
-              )}
-
-              {/* Points */}
-              {result && (
-                <div className={`text-sm font-bold px-2 py-0.5 rounded-full ${
-                  result.points > 0 ? "bg-yellow-400/20 text-yellow-400" : "bg-red-400/10 text-red-400"
-                }`}>
-                  {result.points > 0 ? `+${result.points}` : "0"} — {REASON_LABELS[result.reason]}
-                </div>
-              )}
-
-              {!played && (
-                <div className="text-xs text-gray-600">Pendiente</div>
-              )}
+      <div className="flex flex-col gap-3">
+        {tournamentCards.map(({ tournament, members, myPos, myPoints, myExact }) => (
+          <Link
+            key={tournament.id}
+            href={`/torneos/${tournament.id}`}
+            onClick={() => setCurrentTournament(tournament)}
+            className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-xl px-5 py-4 flex items-center gap-5 transition-colors group"
+          >
+            {/* Posición */}
+            <div className={`text-2xl font-bold w-12 text-center flex-shrink-0 ${
+              myPos === 1 ? "text-yellow-400" : myPos === 2 ? "text-gray-300" : myPos === 3 ? "text-amber-600" : "text-gray-400"
+            }`}>
+              {usersLoading ? "—" : rankEmoji(myPos)}
             </div>
-          );
-        })}
+
+            {/* Info torneo */}
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-white text-base truncate">{tournament.name}</div>
+              <div className="text-sm text-gray-400 mt-0.5">
+                {usersLoading ? (
+                  <span className="text-gray-600">Cargando...</span>
+                ) : (
+                  <>
+                    <span className="text-white font-semibold">{myPoints} pts</span>
+                    {" · "}
+                    {myExact} exactos
+                    {" · "}
+                    {members.length} {members.length === 1 ? "participante" : "participantes"}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Código + flecha */}
+            <div className="text-right flex-shrink-0">
+              <div className="font-mono text-xs text-gray-600 tracking-widest mb-1">{tournament.id}</div>
+              <div className="text-gray-600 group-hover:text-gray-400 transition-colors text-lg">›</div>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );

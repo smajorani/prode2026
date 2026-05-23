@@ -28,9 +28,8 @@ export default function Navbar() {
         {!loading && (
           <nav className="flex items-center gap-4 flex-1 justify-end">
             {navLink("/fixture", "Fixture")}
-            {navLink("/leaderboard", "Tabla")}
-            {user && navLink("/torneos", "Torneos")}
             {user && navLink("/mis-predicciones", "Mis prodes")}
+            {user && navLink("/torneos", "Torneos")}
             {isAdmin && navLink("/admin", "Admin")}
 
             {/* Selector de torneo rápido */}
