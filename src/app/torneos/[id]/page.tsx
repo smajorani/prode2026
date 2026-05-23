@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTournament } from "@/context/TournamentContext";
 import { getTournament, joinTournament } from "@/lib/tournaments";
 import { getLeaderboard, subscribeMatches, subscribeUserPredictions, savePrediction } from "@/lib/firestore";
+import { FIXTURE } from "@/lib/fixture";
 import { Tournament, UserProfile, Match, Prediction, Phase } from "@/types";
 
 // ── Fixture helpers ───────────────────────────────────────────────────────
@@ -171,7 +172,10 @@ export default function TournamentDetailPage() {
   if (!tournament) return null;
 
   const predMap = Object.fromEntries(predictions.map((p) => [p.matchId, p]));
-  const shownMatches = matches.filter((m) =>
+  const allMatches: Match[] = matches.length > 0
+    ? matches
+    : (FIXTURE as Omit<Match, "homeScore" | "awayScore">[]).map((m) => ({ ...m, homeScore: null, awayScore: null }));
+  const shownMatches = allMatches.filter((m) =>
     m.phase === activePhase && (activePhase !== "group" || m.group === activeGroup)
   );
 
@@ -220,11 +224,13 @@ export default function TournamentDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-800 mt-5 mb-5">
+      <div className="flex gap-2 mt-5 mb-5 bg-gray-900 border border-gray-800 rounded-xl p-1 w-fit">
         {(["tabla", "fixture"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-5 py-2.5 text-sm font-semibold capitalize transition-colors border-b-2 -mb-px ${
-              tab === t ? "border-yellow-400 text-yellow-400" : "border-transparent text-gray-400 hover:text-gray-200"
+            className={`px-6 py-2 text-sm font-semibold rounded-lg transition-all ${
+              tab === t
+                ? "bg-yellow-400 text-gray-900 shadow-sm"
+                : "text-gray-400 hover:text-white"
             }`}>
             {t === "tabla" ? "Tabla" : "Fixture"}
           </button>
