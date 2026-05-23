@@ -30,7 +30,6 @@ export default function Navbar() {
             {navLink("/fixture", "Fixture")}
             {user && navLink("/mis-predicciones", "Mis prodes")}
             {user && navLink("/torneos", "Torneos")}
-            {isAdmin && navLink("/admin", "Admin")}
 
             {/* Selector de torneo rápido */}
             {user && tournaments.length > 1 && (

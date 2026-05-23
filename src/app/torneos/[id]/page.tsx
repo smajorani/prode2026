@@ -5,7 +5,10 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useTournament } from "@/context/TournamentContext";
-import { getTournament, joinTournament } from "@/lib/tournaments";
+import {
+  getTournament, joinTournament, isTournamentAdmin,
+  updateTournamentInfo, removeMember, promoteToAdmin, demoteAdmin,
+} from "@/lib/tournaments";
 import UserAvatar from "@/components/UserAvatar";
 import { getLeaderboard, subscribeMatches, subscribeUserPredictions, savePrediction } from "@/lib/firestore";
 import { FIXTURE } from "@/lib/fixture";
@@ -87,12 +90,18 @@ export default function TournamentDetailPage() {
   const { setCurrentTournament, refreshTournaments } = useTournament();
   const router = useRouter();
 
-  const [tab, setTab] = useState<"tabla" | "fixture">("tabla");
+  const [tab, setTab] = useState<"tabla" | "fixture" | "admin">("tabla");
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [members, setMembers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Admin panel state
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [adminSaving, setAdminSaving] = useState(false);
+  const [memberAction, setMemberAction] = useState<string | null>(null);
 
   // Fixture state
   const [matches, setMatches] = useState<Match[]>([]);
@@ -102,12 +111,15 @@ export default function TournamentDetailPage() {
   const [activeGroup, setActiveGroup] = useState("A");
 
   const isMember = !!user && (tournament?.members.includes(user.uid) ?? false);
+  const isAdmin = !!user && !!tournament && isTournamentAdmin(tournament, user.uid);
 
   useEffect(() => {
     async function load() {
       const t = await getTournament(id);
       if (!t) { router.push("/mis-predicciones"); return; }
       setTournament(t);
+      setEditName(t.name);
+      setEditDesc(t.description ?? "");
       if (user && t.members.includes(user.uid)) setCurrentTournament(t);
 
       const allUsers = await getLeaderboard();
@@ -154,6 +166,40 @@ export default function TournamentDetailPage() {
     try { await savePrediction(user.uid, matchId, home, away); }
     catch (err) { alert(err instanceof Error ? err.message : "Error al guardar"); }
     finally { setSaving(null); }
+  }
+
+  async function handleSaveInfo() {
+    if (!tournament) return;
+    setAdminSaving(true);
+    await updateTournamentInfo(tournament.id, { name: editName.trim(), description: editDesc.trim() });
+    setTournament((t) => t ? { ...t, name: editName.trim(), description: editDesc.trim() } : t);
+    setAdminSaving(false);
+  }
+
+  async function handleRemoveMember(uid: string) {
+    if (!tournament) return;
+    if (!confirm("¿Querés quitar a este usuario del torneo?")) return;
+    setMemberAction(uid);
+    await removeMember(tournament.id, uid);
+    setTournament((t) => t ? { ...t, members: t.members.filter((m) => m !== uid), admins: (t.admins ?? []).filter((a) => a !== uid) } : t);
+    setMembers((prev) => prev.filter((m) => m.uid !== uid));
+    setMemberAction(null);
+  }
+
+  async function handlePromote(uid: string) {
+    if (!tournament) return;
+    setMemberAction(uid);
+    await promoteToAdmin(tournament.id, uid);
+    setTournament((t) => t ? { ...t, admins: [...(t.admins ?? []), uid] } : t);
+    setMemberAction(null);
+  }
+
+  async function handleDemote(uid: string) {
+    if (!tournament) return;
+    setMemberAction(uid);
+    await demoteAdmin(tournament.id, uid);
+    setTournament((t) => t ? { ...t, admins: (t.admins ?? []).filter((a) => a !== uid) } : t);
+    setMemberAction(null);
   }
 
   function share() {
@@ -226,14 +272,14 @@ export default function TournamentDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 mt-5 mb-5 bg-gray-900 border border-gray-800 rounded-xl p-1 w-fit">
-        {(["tabla", "fixture"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-6 py-2 text-sm font-semibold rounded-lg transition-all ${
+        {(["tabla", "fixture", ...(isAdmin ? ["admin"] : [])] as const).map((t) => (
+          <button key={t} onClick={() => setTab(t as typeof tab)}
+            className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
               tab === t
                 ? "bg-yellow-400 text-gray-900 shadow-sm"
                 : "text-gray-400 hover:text-white"
             }`}>
-            {t === "tabla" ? "Tabla" : "Fixture"}
+            {t === "tabla" ? "Tabla" : t === "fixture" ? "Fixture" : "⚙ Admin"}
           </button>
         ))}
       </div>
@@ -352,6 +398,107 @@ export default function TournamentDetailPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── ADMIN ── */}
+      {tab === "admin" && isAdmin && tournament && (
+        <div className="flex flex-col gap-6">
+
+          {/* Editar info */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-gray-300 mb-4">Información del torneo</h3>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Nombre</label>
+                <input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  maxLength={40}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-400"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Descripción (opcional)</label>
+                <textarea
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                  maxLength={200}
+                  rows={2}
+                  placeholder="Ej: Torneo de la familia Majorani, se juega con plata..."
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-400 resize-none"
+                />
+              </div>
+              <button
+                onClick={handleSaveInfo}
+                disabled={adminSaving || !editName.trim()}
+                className="self-end bg-yellow-400 text-gray-900 font-bold px-5 py-2 rounded-lg text-sm hover:bg-yellow-300 disabled:opacity-50 transition-colors"
+              >
+                {adminSaving ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          </div>
+
+          {/* Gestión de miembros */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-gray-300 mb-4">
+              Participantes ({members.length})
+            </h3>
+            <div className="flex flex-col gap-2">
+              {members.map((u) => {
+                const isCreator = u.uid === tournament.createdBy;
+                const isUAdmin = isTournamentAdmin(tournament, u.uid);
+                const isMe = u.uid === user?.uid;
+                const busy = memberAction === u.uid;
+                const name = u.displayName || u.email || "Jugador";
+
+                return (
+                  <div key={u.uid} className="flex items-center gap-3 py-2 border-b border-gray-800 last:border-0">
+                    <UserAvatar uid={u.uid} photoURL={u.photoURL} size={32} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-white font-medium flex items-center gap-1.5 flex-wrap">
+                        {name}
+                        {isCreator && <span className="text-xs text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded">Creador</span>}
+                        {!isCreator && isUAdmin && <span className="text-xs text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">Admin</span>}
+                        {isMe && <span className="text-xs text-gray-500">(vos)</span>}
+                      </div>
+                      <div className="text-xs text-gray-600">{u.totalPoints || 0} pts</div>
+                    </div>
+
+                    {/* Acciones (no sobre el creador ni sobre uno mismo) */}
+                    {!isCreator && !isMe && (
+                      <div className="flex gap-1.5 flex-shrink-0">
+                        {isUAdmin ? (
+                          <button
+                            onClick={() => handleDemote(u.uid)}
+                            disabled={busy}
+                            className="text-xs border border-gray-700 text-gray-400 px-2 py-1 rounded hover:bg-gray-800 disabled:opacity-40 transition-colors"
+                          >
+                            {busy ? "..." : "Quitar admin"}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handlePromote(u.uid)}
+                            disabled={busy}
+                            className="text-xs border border-blue-400/30 text-blue-400 px-2 py-1 rounded hover:bg-blue-400/10 disabled:opacity-40 transition-colors"
+                          >
+                            {busy ? "..." : "Hacer admin"}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleRemoveMember(u.uid)}
+                          disabled={busy}
+                          className="text-xs border border-red-400/30 text-red-400 px-2 py-1 rounded hover:bg-red-400/10 disabled:opacity-40 transition-colors"
+                        >
+                          {busy ? "..." : "Quitar"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

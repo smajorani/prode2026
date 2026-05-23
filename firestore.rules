@@ -19,12 +19,15 @@ service cloud.firestore {
     }
 
     // Torneos: cualquier usuario logueado puede crear y leer
-    // Solo miembros pueden actualizar (unirse)
+    // Miembros pueden unirse (update), admins pueden editar todo
     match /tournaments/{tournamentId} {
       allow read: if true;
       allow create: if request.auth != null && request.resource.data.createdBy == request.auth.uid;
-      allow update: if request.auth != null && request.auth.uid in resource.data.members
-                    || request.auth.uid == resource.data.createdBy;
+      allow update: if request.auth != null && (
+        request.auth.uid in resource.data.members ||
+        request.auth.uid in resource.data.admins ||
+        request.auth.uid == resource.data.createdBy
+      );
     }
   }
 }

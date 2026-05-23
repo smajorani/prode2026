@@ -43,10 +43,12 @@ export interface ScoringResult {
 }
 
 export interface Tournament {
-  id: string;        // código de 6 chars, ej: "XKQW3A"
+  id: string;           // código de 6 chars, ej: "XKQW3A"
   name: string;
-  createdBy: string; // userId
-  members: string[]; // userIds
+  description?: string;
+  createdBy: string;    // userId
+  admins: string[];     // userIds con rol admin del torneo
+  members: string[];    // userIds
   createdAt: string;
 }
 

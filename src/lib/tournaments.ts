@@ -4,6 +4,7 @@ import {
   setDoc,
   updateDoc,
   arrayUnion,
+  arrayRemove,
   collection,
   query,
   where,
@@ -12,7 +13,6 @@ import {
 import { db } from "./firebase";
 import { Tournament } from "@/types";
 
-// Genera un código de 6 caracteres legible (sin 0, O, 1, I para evitar confusión)
 function generateId(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
@@ -20,7 +20,6 @@ function generateId(): string {
 
 export async function createTournament(userId: string, name: string): Promise<Tournament> {
   let id = generateId();
-  // Asegurarse de que el ID no exista (colisión muy improbable pero vale)
   while ((await getDoc(doc(db, "tournaments", id))).exists()) {
     id = generateId();
   }
@@ -28,7 +27,9 @@ export async function createTournament(userId: string, name: string): Promise<To
   const tournament: Tournament = {
     id,
     name: name.trim(),
+    description: "",
     createdBy: userId,
+    admins: [userId],
     members: [userId],
     createdAt: new Date().toISOString(),
   };
@@ -42,15 +43,10 @@ export async function joinTournament(userId: string, rawId: string): Promise<Tou
   const ref = doc(db, "tournaments", id);
   const snap = await getDoc(ref);
 
-  if (!snap.exists()) {
-    throw new Error("No existe un torneo con ese código");
-  }
+  if (!snap.exists()) throw new Error("No existe un torneo con ese código");
 
   const tournament = snap.data() as Tournament;
-
-  if (tournament.members.includes(userId)) {
-    return tournament; // Ya es miembro, no hacer nada
-  }
+  if (tournament.members.includes(userId)) return tournament;
 
   await updateDoc(ref, { members: arrayUnion(userId) });
   return { ...tournament, members: [...tournament.members, userId] };
@@ -68,3 +64,32 @@ export async function getTournament(id: string): Promise<Tournament | null> {
   return snap.exists() ? (snap.data() as Tournament) : null;
 }
 
+// ── Admin functions ───────────────────────────────────────────────────────
+
+export async function updateTournamentInfo(id: string, data: { name?: string; description?: string }) {
+  await updateDoc(doc(db, "tournaments", id), data);
+}
+
+export async function removeMember(tournamentId: string, userId: string) {
+  await updateDoc(doc(db, "tournaments", tournamentId), {
+    members: arrayRemove(userId),
+    admins: arrayRemove(userId),
+  });
+}
+
+export async function promoteToAdmin(tournamentId: string, userId: string) {
+  await updateDoc(doc(db, "tournaments", tournamentId), {
+    admins: arrayUnion(userId),
+  });
+}
+
+export async function demoteAdmin(tournamentId: string, userId: string) {
+  await updateDoc(doc(db, "tournaments", tournamentId), {
+    admins: arrayRemove(userId),
+  });
+}
+
+// Helper: un usuario es admin si está en admins[] o es el creador (fallback para torneos viejos)
+export function isTournamentAdmin(tournament: Tournament, userId: string): boolean {
+  return tournament.createdBy === userId || (tournament.admins ?? []).includes(userId);
+}
