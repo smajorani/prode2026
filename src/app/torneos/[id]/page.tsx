@@ -102,7 +102,7 @@ function TeamSelect({ value, onChange, placeholder }: {
         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400 appearance-none pr-8"
       >
         <option value="">{placeholder}</option>
-        {ALL_TEAMS.map(({ team, flagCode }) => (
+        {[...ALL_TEAMS].sort((a, b) => a.team.localeCompare(b.team, "es")).map(({ team }) => (
           <option key={team} value={team}>{team}</option>
         ))}
       </select>
