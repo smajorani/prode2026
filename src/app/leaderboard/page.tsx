@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTournament } from "@/context/TournamentContext";
 import { subscribeLeaderboard } from "@/lib/firestore";
 import { UserProfile } from "@/types";
+import UserAvatar from "@/components/UserAvatar";
 
 export default function LeaderboardPage() {
   const { user } = useAuth();
@@ -83,13 +84,7 @@ export default function LeaderboardPage() {
                 {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
               </div>
 
-              {u.photoURL ? (
-                <img src={u.photoURL} alt="" className="w-8 h-8 rounded-full flex-shrink-0" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-gray-300 flex-shrink-0">
-                  {(u.displayName || u.email)?.[0]?.toUpperCase()}
-                </div>
-              )}
+              <UserAvatar uid={u.uid} photoURL={u.photoURL} size={32} />
 
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-sm text-white truncate">

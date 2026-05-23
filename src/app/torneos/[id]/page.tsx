@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useTournament } from "@/context/TournamentContext";
 import { getTournament, joinTournament } from "@/lib/tournaments";
+import UserAvatar from "@/components/UserAvatar";
 import { getLeaderboard, subscribeMatches, subscribeUserPredictions, savePrediction } from "@/lib/firestore";
 import { FIXTURE } from "@/lib/fixture";
 import { Tournament, UserProfile, Match, Prediction, Phase } from "@/types";
@@ -262,12 +263,7 @@ export default function TournamentDetailPage() {
                 </div>
 
                 {/* Avatar */}
-                {u.photoURL
-                  ? <img src={u.photoURL} alt="" className="w-9 h-9 rounded-full flex-shrink-0 object-cover" />
-                  : <div className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center font-bold text-gray-300 flex-shrink-0 text-sm">
-                      {name[0].toUpperCase()}
-                    </div>
-                }
+                <UserAvatar uid={u.uid} photoURL={u.photoURL} size={36} />
 
                 {/* Nombre + stats */}
                 <div className="flex-1 min-w-0">
