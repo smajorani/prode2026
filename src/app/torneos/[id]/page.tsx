@@ -263,7 +263,7 @@ export default function TournamentDetailPage() {
       <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
         <div>
           <Link href="/mis-predicciones" className="text-xs text-gray-500 hover:text-gray-300 transition-colors mb-1 inline-block">
-            ← Torneos
+            ← Mis torneos
           </Link>
           <h1 className="text-xl font-bold text-white">{tournament.name}</h1>
           <p className="text-gray-500 text-sm">{tournament.members.length} {tournament.members.length === 1 ? "participante" : "participantes"}</p>
