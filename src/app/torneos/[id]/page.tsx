@@ -523,10 +523,12 @@ export default function TournamentDetailPage() {
         const targets = shownMatches.filter(
           (m) => !predMap[m.id] && new Date(m.date) > new Date()
         );
-        for (const match of targets) {
-          const { home, away } = weightedRandomScore();
-          await savePrediction(user.uid, match.id, home, away);
-        }
+        await Promise.all(
+          targets.map((match) => {
+            const { home, away } = weightedRandomScore();
+            return savePrediction(user.uid, match.id, home, away);
+          })
+        );
       }
     } finally {
       setRandomFilling(false);
