@@ -125,6 +125,7 @@ export default function TournamentDetailPage() {
   const isMember = !!user && (tournament?.members.includes(user.uid) ?? false);
   const isAdmin = !!user && !!tournament && isTournamentAdmin(tournament, user.uid);
   const autoJoinFired = useRef(false);
+  const didSeeModal = useRef(false);
 
   const membersRef = useRef<string[]>([]);
   const allUsersRef = useRef<UserProfile[]>([]);
@@ -173,13 +174,16 @@ export default function TournamentDetailPage() {
   // Mostrar modal después de 1 segundo si no hay sesión y el torneo cargó
   useEffect(() => {
     if (authLoading || user || loading) return;
-    const t = setTimeout(() => setShowModal(true), 1000);
+    const t = setTimeout(() => {
+      setShowModal(true);
+      didSeeModal.current = true;
+    }, 1000);
     return () => clearTimeout(t);
   }, [authLoading, user, loading]);
 
-  // Auto-join: usuario logueado que no es miembro → unirse automáticamente
+  // Auto-join: solo si el usuario llegó sin sesión (vio el modal de bienvenida)
   useEffect(() => {
-    if (!user || isMember || !tournament || loading || autoJoinFired.current) return;
+    if (!user || isMember || !tournament || loading || autoJoinFired.current || !didSeeModal.current) return;
     autoJoinFired.current = true;
     const timer = setTimeout(async () => {
       try {
