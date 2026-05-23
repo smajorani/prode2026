@@ -114,50 +114,75 @@ function TeamSelect({ value, onChange, placeholder }: {
 function PlayerSelect({ team, value, onChange }: {
   team: string; value: string; onChange: (v: string) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
   const squad = team ? SQUADS[team] : null;
-  const hasPlayers = squad && (
+  const hasPlayers = !!squad && (
     squad.porteros.length + squad.defensas.length +
     squad.mediocampistas.length + squad.delanteros.length > 0
   );
+  const disabled = !team || !hasPlayers;
+  const placeholder = !team ? "Elegí el equipo primero" : !hasPlayers ? "Plantel no disponible" : "Elegí un jugador";
+
   const sort = (arr: string[]) => [...arr].sort((a, b) => a.localeCompare(b, "es"));
+  const groups = squad && hasPlayers ? [
+    { label: "Arqueros",       players: sort(squad.porteros) },
+    { label: "Defensores",     players: sort(squad.defensas) },
+    { label: "Mediocampistas", players: sort(squad.mediocampistas) },
+    { label: "Delanteros",     players: sort(squad.delanteros) },
+  ].filter((g) => g.players.length > 0) : [];
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
 
   return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={!team || !hasPlayers}
-        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400 appearance-none pr-8 disabled:opacity-40 disabled:cursor-not-allowed"
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((o) => !o)}
+        className={`w-full bg-gray-800 border rounded-lg px-3 py-2.5 text-sm text-left flex items-center justify-between transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+          open ? "border-yellow-400" : "border-gray-700 hover:border-gray-500"
+        }`}
       >
-        <option value="">
-          {!team ? "Elegí el equipo primero" : !hasPlayers ? "Plantel no disponible" : "Elegí un jugador"}
-        </option>
-        {squad && hasPlayers && (
-          <>
-            {squad.porteros.length > 0 && (
-              <optgroup label="Arqueros">
-                {sort(squad.porteros).map((p) => <option key={p} value={p}>{p}</option>)}
-              </optgroup>
-            )}
-            {squad.defensas.length > 0 && (
-              <optgroup label="Defensores">
-                {sort(squad.defensas).map((p) => <option key={p} value={p}>{p}</option>)}
-              </optgroup>
-            )}
-            {squad.mediocampistas.length > 0 && (
-              <optgroup label="Mediocampistas">
-                {sort(squad.mediocampistas).map((p) => <option key={p} value={p}>{p}</option>)}
-              </optgroup>
-            )}
-            {squad.delanteros.length > 0 && (
-              <optgroup label="Delanteros">
-                {sort(squad.delanteros).map((p) => <option key={p} value={p}>{p}</option>)}
-              </optgroup>
-            )}
-          </>
-        )}
-      </select>
-      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500">▾</span>
+        <span className={value ? "text-white" : "text-gray-500"}>{value || placeholder}</span>
+        <span className={`text-gray-500 transition-transform duration-150 ${open ? "rotate-180" : ""}`}>▾</span>
+      </button>
+
+      {open && !disabled && (
+        <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl overflow-hidden">
+          <div className="max-h-60 overflow-y-auto">
+            {groups.map(({ label, players }) => (
+              <div key={label}>
+                <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-yellow-400/80 bg-gray-900/80 sticky top-0">
+                  {label}
+                </div>
+                {players.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => { onChange(p); setOpen(false); }}
+                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                      value === p
+                        ? "bg-yellow-400/10 text-yellow-400"
+                        : "text-gray-200 hover:bg-gray-700/70"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
