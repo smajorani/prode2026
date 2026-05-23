@@ -285,11 +285,11 @@ export default function TournamentDetailPage() {
         </div>
 
         {isAdmin && (
-          <div className="flex bg-gray-900 border border-gray-800 rounded-xl p-1">
+          <div className="flex bg-gray-800 border border-gray-700 rounded-xl p-1">
             <button
               onClick={() => setTab(tab === "admin" ? "tabla" : "admin")}
               className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
-                tab === "admin" ? "bg-yellow-400 text-gray-900 shadow-sm" : "text-gray-400 hover:text-white"
+                tab === "admin" ? "bg-green-500 text-white shadow-sm" : "text-gray-400 hover:text-white"
               }`}>
               ⚙ Admin
             </button>
