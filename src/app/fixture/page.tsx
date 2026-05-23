@@ -186,22 +186,14 @@ export default function FixturePage() {
 
       {/* Phase tabs */}
       <div className="flex gap-2 flex-wrap mb-4">
-        {PHASE_ORDER.map((ph) => {
-          const unlocked = ph === "group" || source.some(
-            (m) => m.phase === ph && !m.homeTeam.includes("°") && !/^[WL] /.test(m.homeTeam)
-          );
-          return (
-            <button key={ph}
-              onClick={() => { if (!unlocked) return; setActivePhase(ph); if (ph === "group") setActiveGroup("A"); }}
-              className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-                !unlocked          ? "bg-gray-800/50 text-gray-600 cursor-not-allowed opacity-50"
-                : activePhase === ph ? "bg-yellow-400 text-gray-900"
-                :                      "bg-gray-800 text-gray-300 hover:bg-gray-700"
-              }`}>
-              {PHASE_LABELS[ph]}
-            </button>
-          );
-        })}
+        {PHASE_ORDER.map((ph) => (
+          <button key={ph} onClick={() => { setActivePhase(ph); if (ph === "group") setActiveGroup("A"); }}
+            className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+              activePhase === ph ? "bg-yellow-400 text-gray-900" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+            }`}>
+            {PHASE_LABELS[ph]}
+          </button>
+        ))}
       </div>
 
       {/* Group tabs */}
