@@ -15,6 +15,7 @@
 - **Firebase Storage NO disponible** (plan Spark) — las fotos de perfil se guardan como base64 JPEG en Firestore
 - **Firestore rules** deben publicarse manualmente en Firebase Console cada vez que cambien
 - Firebase se inicializa solo en el cliente (guard `typeof window !== "undefined"` en `src/lib/firebase.ts`)
+- **NUNCA inventar datos del fixture** — siempre usar `src/lib/fixture.ts` como fuente de verdad; si hay duda sobre equipos/grupos/horarios, preguntar al usuario
 
 ## Funcionalidades implementadas
 
@@ -26,24 +27,46 @@
 ### Fixture (`/fixture`)
 - Vista **read-only** del fixture completo del Mundial 2026 (104 partidos)
 - Tabs por fase: Grupos / R32 / Octavos / Cuartos / Semis / 3° / Final
+- **Todas las fases siempre navegables** en el fixture público (aunque los equipos sean placeholders en eliminatorias)
 - En Fase de Grupos: tabs A–L + tabla de posiciones por grupo (PJ G E P GF GC DG Pts)
 - Layout desktop: partidos a la izquierda, tabla a la derecha (`lg:flex-row-reverse`)
 - Layout mobile: tabla arriba, partidos abajo
 - Los resultados se calculan en tiempo real desde Firestore (fallback al FIXTURE estático si no hay datos)
 
+### Fixture estático (`src/lib/fixture.ts`)
+- 104 partidos oficiales FIFA World Cup 2026 — **fuente: FIFA oficial**
+- Grupos A–L con los 48 equipos reales del sorteo (5 dic 2025)
+- **Argentina en Grupo J**: Argelia, Austria, Jordania
+- Horarios en UTC (fixture oficial en Eastern US UTC-4, +4h para UTC → en Argentina = ET +1h)
+- Fases eliminatorias con placeholders ("1° Grupo X", "W r32_N") hasta que se definan equipos
+- Equipos identificados con flag codes ISO 3166-1 alpha-2 (Escocia: `gb-sct`, Inglaterra: `gb-eng`)
+
 ### Torneos (`/torneos`, `/torneos/[id]`)
 - Crear torneo → genera código de 6 caracteres alfanumérico único (ID del torneo)
 - Unirse con código → agrega al usuario como miembro
-- Botón "Invitar" copia mensaje con link `?action=invite` al portapapeles
+- Botón "Invitar" copia mensaje con link `?action=invite` al portapapeles (solo visible para admins)
 - Tab **Tabla**: leaderboard de miembros en **tiempo real** (onSnapshot) con Pos / Avatar / Nombre / predicciones / parciales / exactos / Pts
 - Tab **Fixture**: mismos partidos que `/fixture` pero con inputs de predicción por partido
   - Inputs de predicción: `type="number"` con flechas ocultas vía Tailwind (`[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none`)
   - Toast verde "Partido guardado" al guardar exitosamente
   - Partido bloqueado (🔒) si ya empezó
+  - **Botón "Al azar"**: rellena con resultados ponderados por probabilidad histórica los partidos sin predicción del grupo/fase activa (usa `src/lib/scores.ts`)
+  - **Tabs de fase**: grisados y no clickeables en el fixture del torneo cuando la fase no tiene equipos reales aún (etapas eliminatorias con placeholders). En el fixture público `/fixture` siempre están habilitados
+  - **Tabs de grupo**: se ponen verde suave cuando todos los partidos del grupo tienen predicción
 - Tab **Admin** (solo para admins del torneo): editar nombre/descripción, gestionar miembros (promover/degradar admin, quitar)
 - **Modal de bienvenida** para usuarios no autenticados que abren un link de invitación: muestra nombre del torneo, permite registro con Google o email, "Ya tengo cuenta" → `/login?redirect=...`
-- **Auto-join**: si la URL tiene `?action=invite` y el usuario es miembro → join automático 500ms post-auth. Si no tiene el param, no auto-join (evita que usuarios removidos por un admin se re-unan solos)
+- **Auto-join**: si la URL tiene `?action=invite` y el usuario no es miembro → join automático 500ms post-auth. Si no tiene el param, no auto-join (evita que usuarios removidos por un admin se re-unan solos)
 - Lista de participantes y leaderboard actualizados en tiempo real: `subscribeTournament` + `subscribeLeaderboard` en paralelo
+
+### Leaderboard — criterio de posiciones
+- **Posición = cantidad de jugadores con más puntos + 1** (standard competition ranking)
+- Jugadores con el mismo puntaje muestran el **mismo puesto** (1°, 1°, 3°, ...)
+- Orden de visualización cuando hay empate: exactos desc → parciales desc → nombre asc
+- Aplica tanto en la tabla del torneo como en las cards de "Mis torneos"
+
+### Resultados aleatorios ponderados (`src/lib/scores.ts`)
+- `weightedRandomScore()`: devuelve `{home, away}` con probabilidades basadas en frecuencias históricas de resultados de fútbol
+- Scores más probables: 1-1 (11.3%), 1-0 (10.2%), 2-1 (8.3%), 0-0 (7.3%), etc.
 
 ### Sistema de predicciones
 - Predicciones guardadas en Firestore como `predictions/{userId}_{matchId}`
@@ -65,14 +88,14 @@
 - Editar nombre de usuario (actualiza Firebase Auth + Firestore)
 - Cambiar foto: se redimensiona a 600×600px máx (sin upscale), JPEG calidad 0.95, se guarda como base64 en Firestore `users/{uid}.photoURL`
 - `UserAvatar`: muestra foto si existe, fallback a círculo de color determinístico por UID (12 colores, hash de charCodes)
-- **Eliminar cuenta** (zona peligrosa al fondo, discreta):
+- **Eliminar cuenta** (botón discreto alineado a la derecha al fondo de la página):
   - Paso 1: modal de advertencia con lista de lo que se borra
   - Paso 2: slider de confirmación (arrastrar de izq a derecha al 95%)
   - Si Firebase tira `auth/requires-recent-login`: paso 3 de reautenticación (Google popup o contraseña según proveedor)
   - Al confirmar: borra predicciones + perfil Firestore en batch, luego `deleteUser()` de Firebase Auth
 
 ### Navbar
-Fixture | Mis prodes | Torneos | Perfil | Salir
+Fixture | Mis torneos | Perfil | Salir
 
 ## Archivos clave
 
@@ -81,7 +104,8 @@ Fixture | Mis prodes | Torneos | Perfil | Salir
 | `src/lib/firebase.ts` | Init Firebase (solo cliente, guard SSR) |
 | `src/lib/firestore.ts` | CRUD matches, predictions, leaderboard, scoring |
 | `src/lib/tournaments.ts` | CRUD torneos, isTournamentAdmin, subscribeTournament (onSnapshot) |
-| `src/lib/fixture.ts` | Fixture estático completo (104 partidos) |
+| `src/lib/fixture.ts` | Fixture estático completo (104 partidos, datos oficiales FIFA) |
+| `src/lib/scores.ts` | Resultados aleatorios ponderados por probabilidad histórica |
 | `src/lib/scoring.ts` | Lógica de puntuación |
 | `src/types/index.ts` | Types: Match, Prediction, UserProfile, Tournament, Phase, SCORING |
 | `src/context/AuthContext.tsx` | Auth state, ensureUserProfile |
@@ -113,3 +137,4 @@ Fixture | Mis prodes | Torneos | Perfil | Salir
 - Acento admin: `green-500`
 - Inputs numéricos siempre con clases para ocultar flechas del navegador
 - Toasts: `fixed top-5 left-1/2 -translate-x-1/2` con transición opacity + translateY
+- Tabs de fase en el fixture del torneo: grisado (`opacity-50 cursor-not-allowed`) cuando `homeTeam` contiene `°` o coincide con `/^[WL] /` (placeholder de eliminatoria)
