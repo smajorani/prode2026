@@ -278,9 +278,7 @@ export default function PerfilPage() {
         </button>
       </div>
 
-      {/* Zona peligrosa */}
-      <div className="mt-16 flex items-center justify-between">
-        <p className="text-xs text-gray-700">Zona peligrosa</p>
+      <div className="mt-16 flex justify-end">
         <button
           onClick={() => setDeleteStep("warn")}
           className="text-xs text-red-800 hover:text-red-600 transition-colors"
