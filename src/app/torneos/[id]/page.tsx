@@ -139,7 +139,15 @@ export default function TournamentDetailPage() {
       setMembers(
         allUsersRef.current
           .filter((u) => ids.includes(u.uid))
-          .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
+          .sort((a, b) => {
+            const pts = (b.totalPoints || 0) - (a.totalPoints || 0);
+            if (pts !== 0) return pts;
+            const ex = (b.exactCount || 0) - (a.exactCount || 0);
+            if (ex !== 0) return ex;
+            const pa = (b.partialCount || 0) - (a.partialCount || 0);
+            if (pa !== 0) return pa;
+            return (a.displayName || "").localeCompare(b.displayName || "");
+          })
       );
     }
 
@@ -400,9 +408,9 @@ export default function TournamentDetailPage() {
               <p className="text-gray-600 text-sm mt-1">Compartí el código para que se unan</p>
             </div>
           )}
-          {members.map((u, i) => {
+          {members.map((u) => {
             const isMe = user?.uid === u.uid;
-            const pos = i + 1;
+            const pos = members.filter(m => (m.totalPoints || 0) > (u.totalPoints || 0)).length + 1;
             const name = u.displayName || u.email || "Jugador";
             return (
               <div key={u.uid} className={`flex items-center gap-3 rounded-xl px-4 py-3.5 border ${

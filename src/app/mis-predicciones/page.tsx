@@ -45,8 +45,15 @@ export default function MisTorneosPage() {
   const tournamentCards = tournaments.map((t) => {
     const members = allUsers
       .filter((u) => t.members.includes(u.uid))
-      .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-    const myPos = members.findIndex((u) => u.uid === user.uid) + 1;
+      .sort((a, b) => {
+        const pts = (b.totalPoints || 0) - (a.totalPoints || 0);
+        if (pts !== 0) return pts;
+        const ex = (b.exactCount || 0) - (a.exactCount || 0);
+        if (ex !== 0) return ex;
+        return (b.partialCount || 0) - (a.partialCount || 0);
+      });
+    const myPts = meProfile?.totalPoints ?? 0;
+    const myPos = members.filter(m => (m.totalPoints || 0) > myPts).length + 1;
     const myPoints = meProfile?.totalPoints ?? 0;
     const myExact = meProfile?.exactCount ?? 0;
     return { tournament: t, members, myPos, myPoints, myExact };
