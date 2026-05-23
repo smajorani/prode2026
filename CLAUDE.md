@@ -34,13 +34,16 @@
 ### Torneos (`/torneos`, `/torneos/[id]`)
 - Crear torneo → genera código de 6 caracteres alfanumérico único (ID del torneo)
 - Unirse con código → agrega al usuario como miembro
-- Botón "Invitar" copia mensaje de WhatsApp al portapapeles
-- Tab **Tabla**: leaderboard de miembros con Pos / Avatar / Nombre / predicciones / parciales / exactos / Pts
+- Botón "Invitar" copia mensaje con link `?action=invite` al portapapeles
+- Tab **Tabla**: leaderboard de miembros en **tiempo real** (onSnapshot) con Pos / Avatar / Nombre / predicciones / parciales / exactos / Pts
 - Tab **Fixture**: mismos partidos que `/fixture` pero con inputs de predicción por partido
   - Inputs de predicción: `type="number"` con flechas ocultas vía Tailwind (`[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none`)
   - Toast verde "Partido guardado" al guardar exitosamente
   - Partido bloqueado (🔒) si ya empezó
 - Tab **Admin** (solo para admins del torneo): editar nombre/descripción, gestionar miembros (promover/degradar admin, quitar)
+- **Modal de bienvenida** para usuarios no autenticados que abren un link de invitación: muestra nombre del torneo, permite registro con Google o email, "Ya tengo cuenta" → `/login?redirect=...`
+- **Auto-join**: si la URL tiene `?action=invite` y el usuario es miembro → join automático 500ms post-auth. Si no tiene el param, no auto-join (evita que usuarios removidos por un admin se re-unan solos)
+- Lista de participantes y leaderboard actualizados en tiempo real: `subscribeTournament` + `subscribeLeaderboard` en paralelo
 
 ### Sistema de predicciones
 - Predicciones guardadas en Firestore como `predictions/{userId}_{matchId}`
@@ -62,6 +65,11 @@
 - Editar nombre de usuario (actualiza Firebase Auth + Firestore)
 - Cambiar foto: se redimensiona a 600×600px máx (sin upscale), JPEG calidad 0.95, se guarda como base64 en Firestore `users/{uid}.photoURL`
 - `UserAvatar`: muestra foto si existe, fallback a círculo de color determinístico por UID (12 colores, hash de charCodes)
+- **Eliminar cuenta** (zona peligrosa al fondo, discreta):
+  - Paso 1: modal de advertencia con lista de lo que se borra
+  - Paso 2: slider de confirmación (arrastrar de izq a derecha al 95%)
+  - Si Firebase tira `auth/requires-recent-login`: paso 3 de reautenticación (Google popup o contraseña según proveedor)
+  - Al confirmar: borra predicciones + perfil Firestore en batch, luego `deleteUser()` de Firebase Auth
 
 ### Navbar
 Fixture | Mis prodes | Torneos | Perfil | Salir
@@ -72,7 +80,7 @@ Fixture | Mis prodes | Torneos | Perfil | Salir
 |---------|-------------|
 | `src/lib/firebase.ts` | Init Firebase (solo cliente, guard SSR) |
 | `src/lib/firestore.ts` | CRUD matches, predictions, leaderboard, scoring |
-| `src/lib/tournaments.ts` | CRUD torneos, isTournamentAdmin |
+| `src/lib/tournaments.ts` | CRUD torneos, isTournamentAdmin, subscribeTournament (onSnapshot) |
 | `src/lib/fixture.ts` | Fixture estático completo (104 partidos) |
 | `src/lib/scoring.ts` | Lógica de puntuación |
 | `src/types/index.ts` | Types: Match, Prediction, UserProfile, Tournament, Phase, SCORING |
@@ -93,6 +101,11 @@ Fixture | Mis prodes | Torneos | Perfil | Salir
 - `predictions/{userId}_{matchId}` — predicciones de usuarios
 - `users/{uid}` — perfiles (totalPoints, predictionsCount, partialCount, exactCount, photoURL como base64)
 - `tournaments/{tournamentId}` — torneos (id=código 6 chars, admins[], members[])
+
+## Firestore rules — puntos clave
+- `predictions`: allow delete para soportar borrado de cuenta
+- `tournaments`: allow update si `request.auth.uid in request.resource.data.members` → permite auto-join a cualquier usuario autenticado
+- **Publicar manualmente** en Firebase Console cada vez que cambien
 
 ## Notas de diseño
 - Fondo: `bg-gray-950` / `bg-gray-900` para cards
