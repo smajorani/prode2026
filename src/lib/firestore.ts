@@ -54,10 +54,14 @@ export async function savePrediction(userId: string, matchId: string, homeScore:
   const existing = await getDoc(ref);
 
   const matchSnap = await getDoc(doc(db, "matches", matchId));
-  const match = matchSnap.data() as Match;
+  const matchDate: string | undefined = matchSnap.exists()
+    ? (matchSnap.data() as Match).date
+    : FIXTURE.find((m) => m.id === matchId)?.date;
+
+  if (!matchDate) throw new Error("Partido no encontrado");
 
   // No permitir predicciones si el partido ya empezó
-  if (new Date(match.date) <= new Date()) {
+  if (new Date(matchDate) <= new Date()) {
     throw new Error("El partido ya comenzó, no podés modificar tu predicción");
   }
 
@@ -101,21 +105,23 @@ async function recalculatePredictionsForMatch(matchId: string) {
   );
 
   const batch = writeBatch(db);
-  const userPointsDelta: Record<string, { points: number; exact: number }> = {};
+  const userPointsDelta: Record<string, { points: number; partial: number; exact: number }> = {};
 
   for (const predDoc of predsSnap.docs) {
     const pred = predDoc.data() as Prediction;
-    const { points } = calculateScore(match, pred);
-    const wasExact = points === (match.phase === "group" ? 5 : 8);
+    const { points, reason } = calculateScore(match, pred);
+    const wasExact = reason === "exact";
+    const wasPartial = reason !== "exact" && reason !== "miss";
 
     batch.update(predDoc.ref, { points });
 
     if (!userPointsDelta[pred.userId]) {
-      userPointsDelta[pred.userId] = { points: 0, exact: 0 };
+      userPointsDelta[pred.userId] = { points: 0, partial: 0, exact: 0 };
     }
     const oldPoints = pred.points ?? 0;
     userPointsDelta[pred.userId].points += points - oldPoints;
     if (wasExact) userPointsDelta[pred.userId].exact += 1;
+    if (wasPartial) userPointsDelta[pred.userId].partial += 1;
   }
 
   // Actualizar totales en perfiles de usuario
@@ -126,6 +132,7 @@ async function recalculatePredictionsForMatch(matchId: string) {
       const u = userSnap.data() as UserProfile;
       batch.update(userRef, {
         totalPoints: (u.totalPoints || 0) + delta.points,
+        partialCount: (u.partialCount || 0) + delta.partial,
         exactCount: (u.exactCount || 0) + delta.exact,
       });
     }

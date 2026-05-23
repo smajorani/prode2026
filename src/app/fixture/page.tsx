@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
-import { useTournament } from "@/context/TournamentContext";
-import { subscribeMatches, subscribeUserPredictions, savePrediction } from "@/lib/firestore";
-import { Match, Prediction, Phase } from "@/types";
+import { subscribeMatches } from "@/lib/firestore";
+import { Match, Phase } from "@/types";
 import { FIXTURE } from "@/lib/fixture";
 
 const PHASE_LABELS: Record<Phase, string> = {
@@ -19,7 +16,7 @@ const PHASE_LABELS: Record<Phase, string> = {
 };
 
 const PHASE_ORDER: Phase[] = [
-  "group", "round_of_32", "round_of_16", "quarterfinal", "semifinal", "third_place", "final"
+  "group", "round_of_32", "round_of_16", "quarterfinal", "semifinal", "third_place", "final",
 ];
 
 function formatDate(iso: string) {
@@ -29,99 +26,142 @@ function formatDate(iso: string) {
   });
 }
 
-function Flag({ code }: { code: string }) {
-  if (!code) return <span className="w-6 h-4 bg-gray-700 rounded inline-block" />;
+function Flag({ code, size = "sm" }: { code: string; size?: "sm" | "xs" }) {
+  const cls = size === "xs" ? "w-5 h-3.5" : "w-6 h-4";
+  if (!code) return <span className={`${cls} bg-gray-700 rounded inline-block flex-shrink-0`} />;
   return (
     <img
       src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`}
       alt={code}
-      className="w-6 h-4 object-cover rounded-sm inline-block flex-shrink-0"
+      className={`${cls} object-cover rounded-sm inline-block flex-shrink-0`}
     />
   );
 }
 
-interface PredInputProps {
-  match: Match;
-  prediction?: Prediction;
-  onSave: (matchId: string, home: number, away: number) => void;
-  saving: boolean;
-  canPredict: boolean;
+interface TeamStats {
+  team: string;
+  flagCode: string;
+  pj: number;
+  g: number;
+  e: number;
+  p: number;
+  gf: number;
+  gc: number;
+  pts: number;
 }
 
-function PredInput({ match, prediction, onSave, saving, canPredict }: PredInputProps) {
-  const locked = new Date(match.date) <= new Date();
-  const [home, setHome] = useState<number | "">(prediction?.homeScore ?? "");
-  const [away, setAway] = useState<number | "">(prediction?.awayScore ?? "");
+function computeStandings(source: Match[], group: string): TeamStats[] {
+  const stats: Record<string, TeamStats> = {};
 
-  useEffect(() => {
-    if (prediction) { setHome(prediction.homeScore); setAway(prediction.awayScore); }
-  }, [prediction]);
+  const groupMatches = source.filter((m) => m.phase === "group" && m.group === group);
 
-  // Resultado oficial disponible
-  if (match.homeScore !== null && match.awayScore !== null) {
-    return (
-      <div className="flex items-center gap-2 text-sm">
-        <span className="font-bold text-white">{match.homeScore} - {match.awayScore}</span>
-        {prediction?.points !== null && prediction?.points !== undefined && (
-          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-            prediction.points > 0 ? "bg-yellow-400/20 text-yellow-400" : "bg-gray-800 text-gray-500"
-          }`}>
-            {prediction.points > 0 ? `+${prediction.points} pts` : "0 pts"}
-          </span>
-        )}
-      </div>
-    );
+  for (const m of groupMatches) {
+    if (!stats[m.homeTeam]) stats[m.homeTeam] = { team: m.homeTeam, flagCode: m.homeFlagCode, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, pts: 0 };
+    if (!stats[m.awayTeam]) stats[m.awayTeam] = { team: m.awayTeam, flagCode: m.awayFlagCode, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, pts: 0 };
+
+    if (m.homeScore === null || m.awayScore === null) continue;
+
+    const h = stats[m.homeTeam];
+    const a = stats[m.awayTeam];
+    h.pj++; a.pj++;
+    h.gf += m.homeScore; h.gc += m.awayScore;
+    a.gf += m.awayScore; a.gc += m.homeScore;
+
+    if (m.homeScore > m.awayScore) {
+      h.g++; h.pts += 3; a.p++;
+    } else if (m.homeScore < m.awayScore) {
+      a.g++; a.pts += 3; h.p++;
+    } else {
+      h.e++; h.pts++; a.e++; a.pts++;
+    }
   }
 
-  // Partido bloqueado (ya empezó)
-  if (locked) {
-    return (
-      <div className="flex items-center gap-1.5 text-sm text-gray-500">
-        {prediction ? (
-          <span className="font-mono">{prediction.homeScore} - {prediction.awayScore}</span>
-        ) : (
-          <span className="italic text-xs">Sin prode</span>
-        )}
-        <span className="text-xs">🔒</span>
-      </div>
-    );
-  }
+  return Object.values(stats).sort((a, b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    if ((b.gf - b.gc) !== (a.gf - a.gc)) return (b.gf - b.gc) - (a.gf - a.gc);
+    if (b.gf !== a.gf) return b.gf - a.gf;
+    return a.team.localeCompare(b.team);
+  });
+}
 
-  // Sin torneo
-  if (!canPredict) return null;
-
+function MatchRow({ match }: { match: Match }) {
   return (
-    <div className="flex items-center gap-1.5">
-      <input
-        type="number" min={0} max={20}
-        value={home}
-        onChange={(e) => setHome(e.target.value === "" ? "" : Number(e.target.value))}
-        className="w-10 text-center bg-gray-800 border border-gray-700 rounded py-1 text-sm text-white focus:outline-none focus:border-yellow-400"
-      />
-      <span className="text-gray-600">-</span>
-      <input
-        type="number" min={0} max={20}
-        value={away}
-        onChange={(e) => setAway(e.target.value === "" ? "" : Number(e.target.value))}
-        className="w-10 text-center bg-gray-800 border border-gray-700 rounded py-1 text-sm text-white focus:outline-none focus:border-yellow-400"
-      />
-      <button
-        disabled={saving || home === "" || away === ""}
-        onClick={() => onSave(match.id, Number(home), Number(away))}
-        className="text-xs bg-yellow-400 text-gray-900 font-bold px-2 py-1 rounded hover:bg-yellow-300 disabled:opacity-40 transition-colors"
-      >
-        {saving ? "..." : "Guardar"}
-      </button>
+    <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3">
+      <div className="flex-1 flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2 flex-1 justify-end">
+          <span className="font-semibold text-sm text-white text-right">{match.homeTeam}</span>
+          <Flag code={match.homeFlagCode} />
+        </div>
+        <div className="flex-shrink-0 w-14 text-center">
+          {match.homeScore !== null && match.awayScore !== null ? (
+            <span className="font-bold text-white text-sm">{match.homeScore} – {match.awayScore}</span>
+          ) : (
+            <span className="text-gray-600 text-xs font-bold">vs</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-1">
+          <Flag code={match.awayFlagCode} />
+          <span className="font-semibold text-sm text-white">{match.awayTeam}</span>
+        </div>
+      </div>
+      <div className="text-xs text-gray-500 text-right flex-shrink-0 hidden sm:block">
+        <div>{formatDate(match.date)}</div>
+        <div>{match.city}</div>
+      </div>
+    </div>
+  );
+}
+
+function GroupStandings({ standings }: { standings: TeamStats[] }) {
+  const cols = ["PJ", "G", "E", "P", "GF", "GC", "DG", "Pts"];
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-5">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-gray-800">
+            <th className="text-left pl-3 pr-1 py-2.5 text-xs font-semibold text-gray-500 w-5">#</th>
+            <th className="text-left px-1 py-2.5 text-xs font-semibold text-gray-500">Equipo</th>
+            {cols.map((c) => (
+              <th key={c} className={`px-1.5 py-2.5 text-xs font-semibold text-center ${c === "Pts" ? "text-yellow-400" : "text-gray-500"}`}>{c}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {standings.map((t, i) => {
+            const dg = t.gf - t.gc;
+            const qualified = i < 2;
+            return (
+              <tr key={t.team} className={`border-b border-gray-800/60 last:border-0 ${qualified ? "bg-yellow-400/[0.03]" : ""}`}>
+                <td className="pl-3 pr-1 py-2.5">
+                  <span className={`text-xs font-bold ${qualified ? "text-yellow-400" : "text-gray-600"}`}>{i + 1}</span>
+                </td>
+                <td className="px-1 py-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <Flag code={t.flagCode} size="xs" />
+                    <span className="font-medium text-white text-xs">{t.team}</span>
+                  </div>
+                </td>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.pj}</td>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.g}</td>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.e}</td>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.p}</td>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.gf}</td>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.gc}</td>
+                <td className={`px-1.5 py-2.5 text-center text-xs font-medium ${dg > 0 ? "text-green-400" : dg < 0 ? "text-red-400" : "text-gray-400"}`}>
+                  {dg > 0 ? `+${dg}` : dg}
+                </td>
+                <td className="px-1.5 pr-3 py-2.5 text-center text-xs font-bold text-yellow-400">{t.pts}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
 
 export default function FixturePage() {
-  const { user } = useAuth();
-  const { currentTournament, tournaments } = useTournament();
   const [matches, setMatches] = useState<Match[]>([]);
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [saving, setSaving] = useState<string | null>(null);
   const [activePhase, setActivePhase] = useState<Phase>("group");
   const [activeGroup, setActiveGroup] = useState("A");
 
@@ -130,25 +170,6 @@ export default function FixturePage() {
     return unsub;
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
-    const unsub = subscribeUserPredictions(user.uid, setPredictions);
-    return unsub;
-  }, [user]);
-
-  async function handleSave(matchId: string, home: number, away: number) {
-    if (!user) return;
-    setSaving(matchId);
-    try {
-      await savePrediction(user.uid, matchId, home, away);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Error al guardar");
-    } finally {
-      setSaving(null);
-    }
-  }
-
-  const predMap = Object.fromEntries(predictions.map((p) => [p.matchId, p]));
   const source: Match[] = matches.length > 0
     ? matches
     : (FIXTURE as Omit<Match, "homeScore" | "awayScore">[]).map((m) => ({ ...m, homeScore: null, awayScore: null }));
@@ -157,41 +178,11 @@ export default function FixturePage() {
     m.phase === activePhase && (activePhase !== "group" || m.group === activeGroup)
   );
 
-  const userInTournament = !!user && (tournaments.length > 0);
-  const canPredict = userInTournament && !!currentTournament;
+  const standings = activePhase === "group" ? computeStandings(source, activeGroup) : [];
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Fixture Mundial 2026</h1>
-        {currentTournament && (
-          <span className="text-xs bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 px-3 py-1.5 rounded-full font-medium">
-            {currentTournament.name}
-          </span>
-        )}
-      </div>
-
-      {/* Gate: necesita torneo para predecir */}
-      {user && !userInTournament && (
-        <div className="bg-gray-900 border border-yellow-400/30 rounded-xl p-5 mb-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex-1">
-            <p className="text-white font-semibold">Para predecir necesitás unirte a un torneo</p>
-            <p className="text-gray-400 text-sm mt-0.5">Creá uno o ingresá el código que te compartieron.</p>
-          </div>
-          <Link
-            href="/torneos"
-            className="bg-yellow-400 text-gray-900 font-bold px-5 py-2 rounded-lg hover:bg-yellow-300 transition-colors text-sm whitespace-nowrap"
-          >
-            Ir a Torneos
-          </Link>
-        </div>
-      )}
-
-      {!user && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-5 text-sm text-gray-400">
-          <Link href="/login" className="text-yellow-400 underline">Iniciá sesión</Link> para guardar tus predicciones.
-        </div>
-      )}
+      <h1 className="text-2xl font-bold text-white mb-6">Fixture Mundial 2026</h1>
 
       {/* Phase tabs */}
       <div className="flex gap-2 flex-wrap mb-4">
@@ -219,46 +210,25 @@ export default function FixturePage() {
         </div>
       )}
 
-      <div className="flex flex-col gap-2.5">
-        {shown.map((match) => (
-          <div key={match.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+      {activePhase === "group" ? (
+        /* Desktop: partidos izquierda, tabla derecha. Mobile: tabla arriba, partidos abajo */
+        <div className="flex flex-col lg:flex-row-reverse gap-4 items-start">
 
-            {/* Equipos */}
-            <div className="flex-1 flex items-center gap-3 min-w-0">
-              <div className="flex items-center gap-2 flex-1 justify-end">
-                <span className="font-semibold text-sm text-white text-right">{match.homeTeam}</span>
-                <Flag code={match.homeFlagCode} />
-              </div>
-              <span className="text-gray-600 text-xs font-bold flex-shrink-0">vs</span>
-              <div className="flex items-center gap-2 flex-1">
-                <Flag code={match.awayFlagCode} />
-                <span className="font-semibold text-sm text-white">{match.awayTeam}</span>
-              </div>
-            </div>
-
-            {/* Fecha y sede */}
-            <div className="text-xs text-gray-500 text-center sm:text-right sm:w-44 flex-shrink-0">
-              <div>{formatDate(match.date)}</div>
-              <div className="truncate">{match.city}</div>
-            </div>
-
-            {/* Predicción */}
-            <div className="sm:w-52 flex justify-start sm:justify-end flex-shrink-0">
-              {user ? (
-                <PredInput
-                  match={match}
-                  prediction={predMap[match.id]}
-                  onSave={handleSave}
-                  saving={saving === match.id}
-                  canPredict={canPredict}
-                />
-              ) : match.homeScore !== null ? (
-                <span className="text-sm font-bold text-white">{match.homeScore} - {match.awayScore}</span>
-              ) : null}
-            </div>
+          {/* Tabla de posiciones — derecha en desktop, arriba en mobile */}
+          <div className="w-full lg:w-[420px] flex-shrink-0">
+            <GroupStandings standings={standings} />
           </div>
-        ))}
-      </div>
+
+          {/* Partidos */}
+          <div className="flex flex-col gap-2 flex-1 min-w-0">
+            {shown.map((match) => <MatchRow key={match.id} match={match} />)}
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {shown.map((match) => <MatchRow key={match.id} match={match} />)}
+        </div>
+      )}
     </div>
   );
 }

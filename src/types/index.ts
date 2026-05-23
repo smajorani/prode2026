@@ -33,6 +33,7 @@ export interface UserProfile {
   photoURL: string | null;
   totalPoints: number;
   predictionsCount: number;
+  partialCount: number;
   exactCount: number;
   createdAt: string;
 }

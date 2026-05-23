@@ -68,11 +68,11 @@ function PredInput({ match, prediction, onSave, saving }: {
     <div className="flex items-center gap-1.5">
       <input type="number" min={0} max={20} value={home}
         onChange={(e) => setHome(e.target.value === "" ? "" : Number(e.target.value))}
-        className="w-9 text-center bg-gray-800 border border-gray-700 rounded py-1 text-sm text-white focus:outline-none focus:border-yellow-400" />
+        className="w-9 text-center bg-gray-800 border border-gray-700 rounded py-1 text-sm text-white focus:outline-none focus:border-yellow-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
       <span className="text-gray-600">-</span>
       <input type="number" min={0} max={20} value={away}
         onChange={(e) => setAway(e.target.value === "" ? "" : Number(e.target.value))}
-        className="w-9 text-center bg-gray-800 border border-gray-700 rounded py-1 text-sm text-white focus:outline-none focus:border-yellow-400" />
+        className="w-9 text-center bg-gray-800 border border-gray-700 rounded py-1 text-sm text-white focus:outline-none focus:border-yellow-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
       <button disabled={saving || home === "" || away === ""}
         onClick={() => onSave(match.id, Number(home), Number(away))}
         className="text-xs bg-yellow-400 text-gray-900 font-bold px-2 py-1 rounded hover:bg-yellow-300 disabled:opacity-40 transition-colors">
@@ -110,6 +110,7 @@ export default function TournamentDetailPage() {
   const [saving, setSaving] = useState<string | null>(null);
   const [activePhase, setActivePhase] = useState<Phase>("group");
   const [activeGroup, setActiveGroup] = useState("A");
+  const [toast, setToast] = useState(false);
 
   const isMember = !!user && (tournament?.members.includes(user.uid) ?? false);
   const isAdmin = !!user && !!tournament && isTournamentAdmin(tournament, user.uid);
@@ -164,7 +165,11 @@ export default function TournamentDetailPage() {
   async function handleSavePred(matchId: string, home: number, away: number) {
     if (!user) return;
     setSaving(matchId);
-    try { await savePrediction(user.uid, matchId, home, away); }
+    try {
+      await savePrediction(user.uid, matchId, home, away);
+      setToast(true);
+      setTimeout(() => setToast(false), 2500);
+    }
     catch (err) { alert(err instanceof Error ? err.message : "Error al guardar"); }
     finally { setSaving(null); }
   }
@@ -230,6 +235,16 @@ export default function TournamentDetailPage() {
   return (
     <div className="max-w-2xl mx-auto">
 
+      {/* Toast */}
+      <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-green-500 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-lg transition-all duration-300 ${
+        toast ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+      }`}>
+        <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        Partido guardado
+      </div>
+
       {/* Banner unirse */}
       {!isMember && (
         <div className="bg-yellow-400/10 border border-yellow-400/40 rounded-xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -248,7 +263,7 @@ export default function TournamentDetailPage() {
       <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
         <div>
           <Link href="/mis-predicciones" className="text-xs text-gray-500 hover:text-gray-300 transition-colors mb-1 inline-block">
-            ← Mis Prodes
+            ← Torneos
           </Link>
           <h1 className="text-xl font-bold text-white">{tournament.name}</h1>
           <p className="text-gray-500 text-sm">{tournament.members.length} {tournament.members.length === 1 ? "participante" : "participantes"}</p>
@@ -331,7 +346,8 @@ export default function TournamentDetailPage() {
                     {isMe && <span className="text-xs text-yellow-400 font-normal">(vos)</span>}
                   </div>
                   <div className="text-xs text-gray-500 mt-0.5 flex gap-3">
-                    <span>{u.predictionsCount || 0} prodes</span>
+                    <span>{u.predictionsCount || 0} predicciones</span>
+                    <span className="text-yellow-400/70">{u.partialCount || 0} parciales</span>
                     <span className="text-green-500/80">{u.exactCount || 0} exactos</span>
                   </div>
                 </div>

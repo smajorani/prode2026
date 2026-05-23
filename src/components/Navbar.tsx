@@ -49,9 +49,7 @@ export default function Navbar() {
 
             {user ? (
               <div className="flex items-center gap-3">
-                <span className="text-xs text-gray-400 hidden sm:block truncate max-w-[100px]">
-                  {user.displayName || user.email}
-                </span>
+                {navLink("/perfil", "Perfil")}
                 <button onClick={logout} className="text-xs text-gray-400 hover:text-white transition-colors">
                   Salir
                 </button>
