@@ -114,23 +114,48 @@ function TeamSelect({ value, onChange, placeholder }: {
 function PlayerSelect({ team, value, onChange }: {
   team: string; value: string; onChange: (v: string) => void;
 }) {
-  const players = team ? (SQUADS[team]?.players ?? []) : [];
-  const sorted = [...players].sort((a, b) => a.localeCompare(b, "es"));
+  const squad = team ? SQUADS[team] : null;
+  const hasPlayers = squad && (
+    squad.porteros.length + squad.defensas.length +
+    squad.mediocampistas.length + squad.delanteros.length > 0
+  );
+  const sort = (arr: string[]) => [...arr].sort((a, b) => a.localeCompare(b, "es"));
 
   return (
     <div className="relative">
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        disabled={!team || sorted.length === 0}
+        disabled={!team || !hasPlayers}
         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400 appearance-none pr-8 disabled:opacity-40 disabled:cursor-not-allowed"
       >
         <option value="">
-          {!team ? "Elegí el equipo primero" : sorted.length === 0 ? "Plantel no disponible" : "Elegí un jugador"}
+          {!team ? "Elegí el equipo primero" : !hasPlayers ? "Plantel no disponible" : "Elegí un jugador"}
         </option>
-        {sorted.map((p) => (
-          <option key={p} value={p}>{p}</option>
-        ))}
+        {squad && hasPlayers && (
+          <>
+            {squad.porteros.length > 0 && (
+              <optgroup label="Arqueros">
+                {sort(squad.porteros).map((p) => <option key={p} value={p}>{p}</option>)}
+              </optgroup>
+            )}
+            {squad.defensas.length > 0 && (
+              <optgroup label="Defensores">
+                {sort(squad.defensas).map((p) => <option key={p} value={p}>{p}</option>)}
+              </optgroup>
+            )}
+            {squad.mediocampistas.length > 0 && (
+              <optgroup label="Mediocampistas">
+                {sort(squad.mediocampistas).map((p) => <option key={p} value={p}>{p}</option>)}
+              </optgroup>
+            )}
+            {squad.delanteros.length > 0 && (
+              <optgroup label="Delanteros">
+                {sort(squad.delanteros).map((p) => <option key={p} value={p}>{p}</option>)}
+              </optgroup>
+            )}
+          </>
+        )}
       </select>
       <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500">▾</span>
     </div>
