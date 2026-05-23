@@ -41,17 +41,12 @@ function Flag({ code }: { code: string }) {
   return <img src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`} alt={code} className="w-5 h-3.5 object-cover rounded-sm inline-block flex-shrink-0" />;
 }
 
-function PredInput({ match, prediction, onSave, saving }: {
+function PredInput({ match, prediction, home, away, onChange }: {
   match: Match; prediction?: Prediction;
-  onSave: (id: string, h: number, a: number) => void; saving: boolean;
+  home: number | ""; away: number | "";
+  onChange: (id: string, h: number | "", a: number | "") => void;
 }) {
   const locked = new Date(match.date) <= new Date();
-  const [home, setHome] = useState<number | "">(prediction?.homeScore ?? "");
-  const [away, setAway] = useState<number | "">(prediction?.awayScore ?? "");
-
-  useEffect(() => {
-    if (prediction) { setHome(prediction.homeScore); setAway(prediction.awayScore); }
-  }, [prediction]);
 
   if (match.homeScore !== null && match.awayScore !== null) {
     return (
@@ -74,17 +69,12 @@ function PredInput({ match, prediction, onSave, saving }: {
   return (
     <div className="flex items-center gap-1.5">
       <input type="number" min={0} max={20} value={home}
-        onChange={(e) => setHome(e.target.value === "" ? "" : Number(e.target.value))}
+        onChange={(e) => onChange(match.id, e.target.value === "" ? "" : Number(e.target.value), away)}
         className="w-9 text-center bg-gray-800 border border-gray-700 rounded py-1 text-sm text-white focus:outline-none focus:border-yellow-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
       <span className="text-gray-600">-</span>
       <input type="number" min={0} max={20} value={away}
-        onChange={(e) => setAway(e.target.value === "" ? "" : Number(e.target.value))}
+        onChange={(e) => onChange(match.id, home, e.target.value === "" ? "" : Number(e.target.value))}
         className="w-9 text-center bg-gray-800 border border-gray-700 rounded py-1 text-sm text-white focus:outline-none focus:border-yellow-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-      <button disabled={saving || home === "" || away === ""}
-        onClick={() => onSave(match.id, Number(home), Number(away))}
-        className="text-xs bg-yellow-400 text-gray-900 font-bold px-2 py-1 rounded hover:bg-yellow-300 disabled:opacity-40 transition-colors">
-        {saving ? "..." : "OK"}
-      </button>
     </div>
   );
 }
@@ -314,7 +304,8 @@ export default function TournamentDetailPage() {
   // Fixture state
   const [matches, setMatches] = useState<Match[]>([]);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [saving, setSaving] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [localEdits, setLocalEdits] = useState<Record<string, { home: number | ""; away: number | "" }>>({});
   const [activePhase, setActivePhase] = useState<Phase>("group");
   const [activeGroup, setActiveGroup] = useState("A"); // "A"–"L" or "BONUS"
   const [toast, setToast] = useState(false);
@@ -535,16 +526,26 @@ export default function TournamentDetailPage() {
     }
   }
 
-  async function handleSavePred(matchId: string, home: number, away: number) {
-    if (!user) return;
-    setSaving(matchId);
+  function handlePredChange(matchId: string, home: number | "", away: number | "") {
+    setLocalEdits((prev) => ({ ...prev, [matchId]: { home, away } }));
+  }
+
+  async function handleSaveAll() {
+    if (!user || saving) return;
+    const entries = Object.entries(localEdits).filter(([, v]) => v.home !== "" && v.away !== "");
+    if (entries.length === 0) return;
+    setSaving(true);
     try {
-      await savePrediction(user.uid, matchId, home, away);
+      await Promise.all(
+        entries.map(([matchId, { home, away }]) =>
+          savePrediction(user.uid, matchId, Number(home), Number(away))
+        )
+      );
+      setLocalEdits({});
       setToast(true);
       setTimeout(() => setToast(false), 2500);
-    }
-    catch (err) { alert(err instanceof Error ? err.message : "Error al guardar"); }
-    finally { setSaving(null); }
+    } catch (err) { alert(err instanceof Error ? err.message : "Error al guardar"); }
+    finally { setSaving(false); }
   }
 
   async function handleSaveBonus() {
@@ -794,16 +795,32 @@ export default function TournamentDetailPage() {
             </div>
 
             {isMember && (
-              <button
-                onClick={handleRandomFill}
-                disabled={randomFilling || (activeGroup !== "BONUS" && shownMatches.every((m) => predMap[m.id] || new Date(m.date) <= new Date()))}
-                className="flex items-center gap-1.5 text-xs bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 px-3 py-1.5 rounded-full font-medium transition-colors disabled:opacity-40 flex-shrink-0"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                {randomFilling ? "Llenando..." : "Al azar"}
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {activeGroup !== "BONUS" && (
+                  <button
+                    onClick={handleSaveAll}
+                    disabled={saving || Object.values(localEdits).filter((v) => v.home !== "" && v.away !== "").length === 0}
+                    className="flex items-center gap-1.5 text-xs bg-yellow-400 text-gray-900 font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-40 hover:bg-yellow-300"
+                  >
+                    {saving ? (
+                      <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    ) : null}
+                    {saving ? "Guardando..." : "Guardar"}
+                  </button>
+                )}
+                <button
+                  onClick={handleRandomFill}
+                  disabled={randomFilling || (activeGroup !== "BONUS" && shownMatches.every((m) => predMap[m.id] || new Date(m.date) <= new Date()))}
+                  className="flex items-center gap-1.5 text-xs bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 px-3 py-1.5 rounded-full font-medium transition-colors disabled:opacity-40"
+                >
+                  <svg className={`w-3.5 h-3.5 ${randomFilling ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {randomFilling ? "Llenando..." : "Al azar"}
+                </button>
+              </div>
             )}
           </div>
 
@@ -882,7 +899,13 @@ export default function TournamentDetailPage() {
                   {/* Prediction */}
                   <div className="sm:w-40 flex justify-end flex-shrink-0">
                     {user && isMember ? (
-                      <PredInput match={match} prediction={predMap[match.id]} onSave={handleSavePred} saving={saving === match.id} />
+                      <PredInput
+                        match={match}
+                        prediction={predMap[match.id]}
+                        home={localEdits[match.id]?.home ?? predMap[match.id]?.homeScore ?? ""}
+                        away={localEdits[match.id]?.away ?? predMap[match.id]?.awayScore ?? ""}
+                        onChange={handlePredChange}
+                      />
                     ) : match.homeScore !== null ? (
                       <span className="text-sm font-bold text-white">{match.homeScore} - {match.awayScore}</span>
                     ) : null}
