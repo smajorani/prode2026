@@ -1,0 +1,39 @@
+name: Sync FIFA Results
+
+on:
+  # Cada 10 minutos durante el Mundial (el script sale solo si está fuera del período)
+  schedule:
+    - cron: "*/10 * 11-30 6 *"  # junio 11-30
+    - cron: "*/10 * 1-19  7 *"  # julio 1-19
+  # Disparador manual para testing (ignora chequeo de fechas)
+  workflow_dispatch:
+    inputs:
+      skip_date_check:
+        description: "Ignorar chequeo de fecha del Mundial"
+        required: false
+        default: "false"
+
+jobs:
+  sync:
+    name: Sync match results
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run sync script
+        run: node scripts/sync-results.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          SKIP_DATE_CHECK: ${{ github.event.inputs.skip_date_check || 'false' }}
