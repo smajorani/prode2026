@@ -409,11 +409,9 @@ async function main() {
     }
 
     if (!matchId) {
-      // Solo advertir si tiene resultado (para no spamear con placeholders vacíos)
-      if (m.HomeTeamScore !== null) {
-        console.warn(`  ⚠ Sin matchId: ${homeNameEn} vs ${awayNameEn} (${m.Date})`);
-        unknown++;
-      }
+      // Loguear siempre (incluso sin resultado) para diagnosticar nombres no reconocidos
+      console.warn(`  ⚠ Sin matchId: "${homeNameEn}" vs "${awayNameEn}" (${m.Date})`);
+      if (m.HomeTeamScore !== null) unknown++;
       continue;
     }
 

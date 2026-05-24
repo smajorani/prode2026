@@ -147,15 +147,35 @@ const FIXTURE = [
 async function main() {
   console.log(`Seeding ${FIXTURE.length} partidos en Firestore...`);
 
-  // Firestore limita los batches a 500 ops; con 104 estamos bien en uno solo
-  const batch = db.batch();
+  let written = 0;
+  let skipped = 0;
+
   for (const m of FIXTURE) {
     const ref = db.collection("matches").doc(m.id);
-    batch.set(ref, { ...m, homeScore: null, awayScore: null }, { merge: true });
-  }
-  await batch.commit();
+    const snap = await ref.get();
 
-  console.log(`OK — ${FIXTURE.length} documentos escritos (merge: true, no pisa resultados).`);
+    if (snap.exists) {
+      // Preservar homeScore/awayScore si ya tienen valor
+      const existing = snap.data();
+      const data = { ...m };
+      if (existing.homeScore !== undefined) data.homeScore = existing.homeScore;
+      else data.homeScore = null;
+      if (existing.awayScore !== undefined) data.awayScore = existing.awayScore;
+      else data.awayScore = null;
+      await ref.set(data);
+      console.log(`  ~ (ya existe) ${m.id}: ${m.homeTeam} vs ${m.awayTeam}`);
+      skipped++;
+    } else {
+      await ref.set({ ...m, homeScore: null, awayScore: null });
+      console.log(`  + (creado)    ${m.id}: ${m.homeTeam} vs ${m.awayTeam}`);
+      written++;
+    }
+  }
+
+  // Verificación final
+  const allSnaps = await db.collection("matches").get();
+  console.log(`\nVerificación: ${allSnaps.size} documentos en 'matches' en Firestore.`);
+  console.log(`Resumen seed: ${written} creados, ${skipped} ya existían.`);
 }
 
 main().catch((err) => {
