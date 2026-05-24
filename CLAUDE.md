@@ -48,9 +48,13 @@
 - Tab **Tabla**: leaderboard de miembros en **tiempo real** (onSnapshot) con Pos / Avatar / Nombre / predicciones / parciales / exactos / Pts
 - Tab **Fixture**: mismos partidos que `/fixture` pero con inputs de predicción por partido
   - Inputs de predicción: `type="number"` con flechas ocultas vía Tailwind (`[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none`)
-  - Toast verde "Partido guardado" al guardar exitosamente
+  - **Sin botones OK individuales** — los cambios se acumulan en `localEdits` (estado local del page) y se guardan todos juntos con el botón **Guardar** (arriba a la derecha, junto a "Al azar")
+  - Guardar se activa en cuanto se toca cualquier input; guarda en paralelo con `Promise.all`
+  - Si ambos inputs se dejan vacíos para un partido que tenía predicción → `deletePrediction` borra la predicción de Firestore
+  - Toast verde "Partido guardado" aparece tras guardar o tras "Al azar" exitoso
   - Partido bloqueado (🔒) si ya empezó
-  - **Botón "Al azar"**: rellena con resultados ponderados por probabilidad histórica los partidos sin predicción del grupo/fase activa (usa `src/lib/scores.ts`)
+  - **Botón "Al azar"**: rellena con resultados ponderados por probabilidad histórica los partidos sin predicción del grupo/fase activa (usa `src/lib/scores.ts`); guarda en paralelo con `Promise.all` y muestra toast al terminar
+  - En tab Bonus, "Al azar" elige campeón, equipo+jugador goleador, equipo+jugador mejor jugador al azar (respeta campos ya completados)
   - **Tabs de fase**: grisados y no clickeables en el fixture del torneo cuando la fase no tiene equipos reales aún (etapas eliminatorias con placeholders). En el fixture público `/fixture` siempre están habilitados
   - **Tabs de grupo**: se ponen verde suave cuando todos los partidos del grupo tienen predicción
   - **Tab Bonus**: botón `★ Bonus` a la derecha de las letras A–L. Muestra panel con 3 predicciones especiales (ver sección Bonus más abajo)
@@ -96,6 +100,7 @@
 - Predicciones guardadas en Firestore como `predictions/{userId}_{matchId}`
 - **No están ligadas al torneo** — son globales por usuario, el ranking filtra por miembros
 - `savePrediction` verifica la fecha del partido (no permite predecir partidos ya iniciados) con fallback al FIXTURE estático si el partido no está en Firestore
+- `deletePrediction(userId, matchId)` borra una predicción de Firestore (se llama cuando el usuario deja ambos inputs vacíos y guarda)
 
 ### Scoring
 | Resultado | Grupos | Eliminatorias |
