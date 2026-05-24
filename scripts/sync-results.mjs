@@ -34,7 +34,7 @@ const FIFA_NAMES = {
   "Korea Republic":     "Corea del Sur",
   "Czechia":            "Rep. Checa",
   "Canada":             "Canadá",
-  "Bosnia-Herzegovina": "Bosnia Herz.",
+  "Bosnia and Herzegovina": "Bosnia Herz.",
   "Qatar":              "Catar",
   "Switzerland":        "Suiza",
   "Brazil":             "Brasil",
@@ -409,9 +409,10 @@ async function main() {
     }
 
     if (!matchId) {
-      // Loguear siempre (incluso sin resultado) para diagnosticar nombres no reconocidos
-      console.warn(`  ⚠ Sin matchId: "${homeNameEn}" vs "${awayNameEn}" (${m.Date})`);
-      if (m.HomeTeamScore !== null) unknown++;
+      if (m.HomeTeamScore !== null) {
+        console.warn(`  ⚠ Sin matchId: "${homeNameEn}" vs "${awayNameEn}" (${m.Date})`);
+        unknown++;
+      }
       continue;
     }
 
