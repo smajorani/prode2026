@@ -368,29 +368,12 @@ const FIFA_HEADERS = {
 };
 
 async function fetchFIFAMatches() {
-  const ROUNDS_URL  = "https://play.fifa.com/api/es/rounds.json?idSeason=285023&language=es";
-  const MATCHES_URL = "https://play.fifa.com/api/es/matches?language=es&count=500&idSeason=285023";
-
-  let res = await fetch(ROUNDS_URL, { headers: FIFA_HEADERS });
-  if (!res.ok) {
-    console.warn(`rounds.json → ${res.status}, probando matches endpoint...`);
-    res = await fetch(MATCHES_URL, { headers: FIFA_HEADERS });
-    if (!res.ok) throw new Error(`FIFA API falló: ${res.status}`);
-  }
-
+  const URL = "https://api.fifa.com/api/v3/calendar/matches?language=es&count=500&idSeason=285023";
+  const res = await fetch(URL, { headers: FIFA_HEADERS });
+  if (!res.ok) throw new Error(`FIFA API falló: ${res.status}`);
   const data = await res.json();
-
-  // Estructura rounds: [{ id, stage, tournaments: [...] }]
-  if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0]?.tournaments)) {
-    return data.flatMap((round) => round.tournaments ?? []);
-  }
-  // Flat array de partidos
-  if (Array.isArray(data)) return data;
-  // Wrapper con clave
-  if (data.data    && Array.isArray(data.data))    return data.data;
-  if (data.matches && Array.isArray(data.matches)) return data.matches;
-
-  throw new Error(`Estructura inesperada: keys=${Object.keys(data).join(",")}`);
+  if (!Array.isArray(data.Results)) throw new Error(`Estructura inesperada: keys=${Object.keys(data).join(",")}`);
+  return data.Results;
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -407,26 +390,28 @@ async function main() {
   let unknown        = 0;
 
   for (const m of fifaMatches) {
-    if (!m.homeSquadName || !m.awaySquadName) continue;
+    const homeNameEn = m.Home?.ShortClubName;
+    const awayNameEn = m.Away?.ShortClubName;
+    if (!homeNameEn || !awayNameEn) continue;
 
-    const homeFixture = FIFA_NAMES[m.homeSquadName] ?? m.homeSquadName;
-    const awayFixture = FIFA_NAMES[m.awaySquadName] ?? m.awaySquadName;
+    const homeFixture = FIFA_NAMES[homeNameEn] ?? homeNameEn;
+    const awayFixture = FIFA_NAMES[awayNameEn] ?? awayNameEn;
 
     // 1. Lookup por nombre (fase de grupos)
     let matchId       = FIXTURE_LOOKUP[`${homeFixture}|${awayFixture}`];
     let isElimination = false;
 
     // 2. Fallback: lookup por fecha UTC (fases eliminatorias)
-    if (!matchId && m.date) {
-      const dateKey = fifaDateToUTCKey(m.date);
+    if (!matchId && m.Date) {
+      const dateKey = fifaDateToUTCKey(m.Date);
       matchId = DATE_LOOKUP[dateKey];
       if (matchId) isElimination = true;
     }
 
     if (!matchId) {
       // Solo advertir si tiene resultado (para no spamear con placeholders vacíos)
-      if (m.homeScore !== null) {
-        console.warn(`  ⚠ Sin matchId: ${m.homeSquadName} vs ${m.awaySquadName} (${m.date})`);
+      if (m.HomeTeamScore !== null) {
+        console.warn(`  ⚠ Sin matchId: ${homeNameEn} vs ${awayNameEn} (${m.Date})`);
         unknown++;
       }
       continue;
@@ -454,12 +439,12 @@ async function main() {
     }
 
     // Para todos: actualizar resultado si hay score nuevo
-    const hasResult    = m.homeScore !== null && m.awayScore !== null;
-    const resultChanged = current.homeScore !== m.homeScore || current.awayScore !== m.awayScore;
+    const hasResult     = m.HomeTeamScore !== null && m.AwayTeamScore !== null;
+    const resultChanged = current.homeScore !== m.HomeTeamScore || current.awayScore !== m.AwayTeamScore;
 
     if (hasResult && resultChanged) {
-      updates.homeScore = m.homeScore;
-      updates.awayScore = m.awayScore;
+      updates.homeScore = m.HomeTeamScore;
+      updates.awayScore = m.AwayTeamScore;
     }
 
     if (Object.keys(updates).length === 0) {
@@ -473,7 +458,7 @@ async function main() {
       const updatedMatch = { ...current, ...updates };
       const predCount    = await recalculateMatch(matchId, updatedMatch);
       console.log(
-        `  ✓ [resultado] ${matchId}: ${m.homeSquadName} ${m.homeScore}-${m.awayScore} ${m.awaySquadName}` +
+        `  ✓ [resultado] ${matchId}: ${homeNameEn} ${m.HomeTeamScore}-${m.AwayTeamScore} ${awayNameEn}` +
         ` (${predCount} predicciones)`
       );
       resultsUpdated++;
