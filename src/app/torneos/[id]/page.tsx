@@ -697,7 +697,7 @@ export default function TournamentDetailPage() {
           {(["tabla", "fixture"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
-                tab === t ? "bg-celeste-500 text-white shadow-sm shadow-celeste-500/30" : "text-gray-500 hover:text-ink-900"
+                tab === t ? "bg-celeste-500 text-white shadow-sm shadow-celeste-500/30" : "text-gray-700 hover:text-ink-900"
               }`}>
               {t === "tabla" ? "Tabla" : "Fixture"}
             </button>
@@ -709,7 +709,7 @@ export default function TournamentDetailPage() {
             <button
               onClick={() => setTab(tab === "admin" ? "tabla" : "admin")}
               className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
-                tab === "admin" ? "bg-emerald-500 text-white shadow-sm" : "text-gray-500 hover:text-ink-900"
+                tab === "admin" ? "bg-emerald-500 text-white shadow-sm" : "text-gray-700 hover:text-ink-900"
               }`}>
               ⚙ Admin
             </button>
