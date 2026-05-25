@@ -95,20 +95,23 @@ export default function MisTorneosPage() {
     }
   }
 
+  const inputCls =
+    "bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-ink-900 placeholder:text-gray-400 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20 transition";
+
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Mis torneos</h1>
+      <div className="flex items-center justify-between mb-6 gap-3">
+        <h1 className="text-2xl sm:text-3xl font-display font-extrabold text-ink-900">Mis torneos</h1>
         <div className="flex gap-2">
           <button
             onClick={openJoin}
-            className="text-sm border border-gray-700 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+            className="text-sm border border-gray-200 bg-white text-ink-900 font-medium px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
           >
             Unirse
           </button>
           <button
             onClick={openCreate}
-            className="text-sm bg-yellow-400 text-gray-900 font-bold px-4 py-2 rounded-lg hover:bg-yellow-300 transition-colors"
+            className="text-sm bg-celeste-500 text-white font-bold px-4 py-2 rounded-xl hover:bg-celeste-600 transition-colors shadow-sm shadow-celeste-500/30"
           >
             + Crear
           </button>
@@ -116,14 +119,14 @@ export default function MisTorneosPage() {
       </div>
 
       {tournaments.length === 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-10 text-center">
-          <p className="text-gray-300 font-semibold text-lg mb-1">No estás en ningún torneo todavía</p>
+        <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center shadow-[var(--shadow-card)]">
+          <p className="text-ink-900 font-semibold text-lg mb-1">No estás en ningún torneo todavía</p>
           <p className="text-gray-500 text-sm mb-5">Creá uno o pedile el código a alguien.</p>
           <div className="flex gap-3 justify-center">
-            <button onClick={openJoin} className="border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-colors text-sm">
+            <button onClick={openJoin} className="border border-gray-200 text-ink-900 font-medium px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-colors text-sm">
               Unirse
             </button>
-            <button onClick={openCreate} className="bg-yellow-400 text-gray-900 font-bold px-5 py-2.5 rounded-lg hover:bg-yellow-300 transition-colors text-sm">
+            <button onClick={openCreate} className="bg-celeste-500 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-celeste-600 transition-colors text-sm shadow-sm shadow-celeste-500/30">
               Crear torneo
             </button>
           </div>
@@ -136,21 +139,21 @@ export default function MisTorneosPage() {
             key={tournament.id}
             href={`/torneos/${tournament.id}`}
             onClick={() => setCurrentTournament(tournament)}
-            className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-xl px-5 py-4 flex items-center gap-5 transition-colors group"
+            className="bg-white border border-gray-200 hover:border-celeste-300 rounded-2xl px-5 py-4 flex items-center gap-5 transition-colors group shadow-[var(--shadow-card)]"
           >
             <div className={`text-2xl font-bold w-12 text-center flex-shrink-0 ${
-              myPos === 1 ? "text-yellow-400" : myPos === 2 ? "text-gray-300" : myPos === 3 ? "text-amber-600" : "text-gray-400"
+              myPos === 1 ? "text-celeste-600" : myPos === 2 ? "text-gray-500" : myPos === 3 ? "text-amber-600" : "text-gray-400"
             }`}>
               {usersLoading ? "—" : rankEmoji(myPos)}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-white text-base truncate">{tournament.name}</div>
-              <div className="text-sm text-gray-400 mt-0.5">
+              <div className="font-semibold text-ink-900 text-base truncate">{tournament.name}</div>
+              <div className="text-sm text-gray-500 mt-0.5">
                 {usersLoading ? (
-                  <span className="text-gray-600">Cargando...</span>
+                  <span className="text-gray-400">Cargando...</span>
                 ) : (
                   <>
-                    <span className="text-white font-semibold">{myPoints} pts</span>
+                    <span className="text-ink-900 font-semibold">{myPoints} pts</span>
                     {" · "}{myExact} exactos
                     {" · "}{members.length} {members.length === 1 ? "participante" : "participantes"}
                   </>
@@ -158,8 +161,8 @@ export default function MisTorneosPage() {
               </div>
             </div>
             <div className="text-right flex-shrink-0">
-              <div className="font-mono text-xs text-gray-600 tracking-widest mb-1">{tournament.id}</div>
-              <div className="text-gray-600 group-hover:text-gray-400 transition-colors text-lg">›</div>
+              <div className="font-mono text-xs text-gray-400 tracking-widest mb-1">{tournament.id}</div>
+              <div className="text-gray-300 group-hover:text-celeste-500 transition-colors text-lg">›</div>
             </div>
           </Link>
         ))}
@@ -167,14 +170,14 @@ export default function MisTorneosPage() {
 
       {/* Modal crear */}
       {modal === "create" && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4" onClick={closeModal}>
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-ink-900/50 backdrop-blur-sm flex items-center justify-center z-50 px-4" onClick={closeModal}>
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 w-full max-w-md shadow-[var(--shadow-pop)]" onClick={(e) => e.stopPropagation()}>
             {created ? (
               <>
-                <h2 className="text-xl font-bold mb-1">¡Torneo creado!</h2>
-                <p className="text-gray-400 text-sm mb-5">Compartí este código con tus amigos para que se unan:</p>
-                <div className="bg-gray-950 border border-yellow-400/30 rounded-xl p-6 text-center mb-5">
-                  <div className="text-4xl font-mono font-bold tracking-[0.3em] text-yellow-400">{created.id}</div>
+                <h2 className="text-xl font-display font-extrabold text-ink-900 mb-1">¡Torneo creado!</h2>
+                <p className="text-gray-500 text-sm mb-5">Compartí este código con tus amigos para que se unan:</p>
+                <div className="bg-celeste-50 border border-celeste-200 rounded-xl p-6 text-center mb-5">
+                  <div className="text-4xl font-mono font-bold tracking-[0.3em] text-celeste-600">{created.id}</div>
                   <div className="text-xs text-gray-500 mt-2">{created.name}</div>
                 </div>
                 <div className="flex gap-2">
@@ -182,13 +185,13 @@ export default function MisTorneosPage() {
                     onClick={() => navigator.clipboard.writeText(
                       `Te invito a sumarte a mi torneo de prode del Mundial 2026: https://www.prode2026.ar/torneos/${created.id}?action=invite`
                     )}
-                    className="flex-1 border border-gray-700 py-2 rounded-lg text-sm hover:bg-gray-800 transition-colors"
+                    className="flex-1 border border-gray-200 text-ink-900 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
                   >
                     Copiar invitación
                   </button>
                   <button
                     onClick={() => { closeModal(); router.push(`/torneos/${created.id}`); }}
-                    className="flex-1 bg-yellow-400 text-gray-900 font-bold py-2 rounded-lg text-sm hover:bg-yellow-300 transition-colors"
+                    className="flex-1 bg-celeste-500 text-white font-bold py-2.5 rounded-xl text-sm hover:bg-celeste-600 transition-colors"
                   >
                     Ir al torneo
                   </button>
@@ -196,21 +199,21 @@ export default function MisTorneosPage() {
               </>
             ) : (
               <>
-                <h2 className="text-xl font-bold mb-4">Crear torneo</h2>
+                <h2 className="text-xl font-display font-extrabold text-ink-900 mb-4">Crear torneo</h2>
                 <input
                   type="text"
                   placeholder="Nombre (ej: Torneo familia)"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm mb-3 focus:outline-none focus:border-yellow-400"
+                  className={`w-full mb-3 ${inputCls}`}
                   autoFocus
                   maxLength={40}
                 />
-                {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+                {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
                 <div className="flex gap-2">
-                  <button onClick={closeModal} className="flex-1 border border-gray-700 py-2 rounded-lg text-sm hover:bg-gray-800">Cancelar</button>
-                  <button onClick={handleCreate} disabled={modalLoading} className="flex-1 bg-yellow-400 text-gray-900 font-bold py-2 rounded-lg text-sm hover:bg-yellow-300 disabled:opacity-50">
+                  <button onClick={closeModal} className="flex-1 border border-gray-200 text-ink-900 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">Cancelar</button>
+                  <button onClick={handleCreate} disabled={modalLoading} className="flex-1 bg-celeste-500 text-white font-bold py-2.5 rounded-xl text-sm hover:bg-celeste-600 disabled:opacity-50">
                     {modalLoading ? "Creando..." : "Crear"}
                   </button>
                 </div>
@@ -222,24 +225,24 @@ export default function MisTorneosPage() {
 
       {/* Modal unirse */}
       {modal === "join" && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4" onClick={closeModal}>
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-2">Unirse a un torneo</h2>
-            <p className="text-gray-400 text-sm mb-4">Pedile el código de 6 letras al creador.</p>
+        <div className="fixed inset-0 bg-ink-900/50 backdrop-blur-sm flex items-center justify-center z-50 px-4" onClick={closeModal}>
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 w-full max-w-md shadow-[var(--shadow-pop)]" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-display font-extrabold text-ink-900 mb-2">Unirse a un torneo</h2>
+            <p className="text-gray-500 text-sm mb-4">Pedile el código de 6 letras al creador.</p>
             <input
               type="text"
               placeholder="CÓDIGO"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === "Enter" && handleJoin()}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm mb-3 font-mono tracking-widest uppercase text-center text-lg focus:outline-none focus:border-yellow-400"
+              className={`w-full mb-3 font-mono tracking-widest uppercase text-center text-lg ${inputCls}`}
               autoFocus
               maxLength={6}
             />
-            {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+            {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
             <div className="flex gap-2">
-              <button onClick={closeModal} className="flex-1 border border-gray-700 py-2 rounded-lg text-sm hover:bg-gray-800">Cancelar</button>
-              <button onClick={handleJoin} disabled={modalLoading} className="flex-1 bg-yellow-400 text-gray-900 font-bold py-2 rounded-lg text-sm hover:bg-yellow-300 disabled:opacity-50">
+              <button onClick={closeModal} className="flex-1 border border-gray-200 text-ink-900 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">Cancelar</button>
+              <button onClick={handleJoin} disabled={modalLoading} className="flex-1 bg-celeste-500 text-white font-bold py-2.5 rounded-xl text-sm hover:bg-celeste-600 disabled:opacity-50">
                 {modalLoading ? "Uniéndose..." : "Entrar"}
               </button>
             </div>

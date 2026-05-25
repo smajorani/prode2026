@@ -4,29 +4,39 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useTournament } from "@/context/TournamentContext";
 import { usePathname } from "next/navigation";
+import Ball from "@/components/Ball";
 
 export default function Navbar() {
-  const { user, isAdmin, logout, loading } = useAuth();
+  const { user, logout, loading } = useAuth();
   const { currentTournament, tournaments, setCurrentTournament } = useTournament();
   const pathname = usePathname();
 
-  const navLink = (href: string, label: string) => (
-    <Link href={href} className={`text-sm font-medium transition-colors ${
-      pathname === href ? "text-yellow-400" : "text-gray-300 hover:text-white"
-    }`}>
-      {label}
-    </Link>
-  );
+  const navLink = (href: string, label: string) => {
+    const active = pathname === href;
+    return (
+      <Link
+        href={href}
+        className={`text-sm font-semibold transition-colors ${
+          active ? "text-celeste-600" : "text-gray-500 hover:text-ink-900"
+        }`}
+      >
+        {label}
+      </Link>
+    );
+  };
 
   return (
-    <header className="border-b border-gray-800 bg-gray-900">
-      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-        <Link href="/" className="font-bold text-lg tracking-tight text-yellow-400 flex-shrink-0">
-          Prode 2026
+    <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/80 backdrop-blur-md">
+      <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+        <Link href="/" className="flex items-center gap-2 flex-shrink-0 group">
+          <Ball size={26} className="transition-transform group-hover:rotate-[25deg]" />
+          <span className="font-display font-extrabold text-lg tracking-tight text-ink-900">
+            Prode <span className="text-celeste-600">2026</span>
+          </span>
         </Link>
 
         {!loading && (
-          <nav className="flex items-center gap-4 flex-1 justify-end">
+          <nav className="flex items-center gap-5 flex-1 justify-end">
             {navLink("/fixture", "Fixture")}
             {user && navLink("/mis-predicciones", "Mis torneos")}
 
@@ -38,7 +48,7 @@ export default function Navbar() {
                   const t = tournaments.find((t) => t.id === e.target.value);
                   if (t) setCurrentTournament(t);
                 }}
-                className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none max-w-[120px] truncate"
+                className="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-900 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20 max-w-[130px] truncate"
               >
                 {tournaments.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
@@ -47,14 +57,20 @@ export default function Navbar() {
             )}
 
             {user ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 {navLink("/perfil", "Perfil")}
-                <button onClick={logout} className="text-xs text-gray-400 hover:text-white transition-colors">
+                <button
+                  onClick={logout}
+                  className="text-xs font-medium text-gray-400 hover:text-ink-900 transition-colors"
+                >
                   Salir
                 </button>
               </div>
             ) : (
-              <Link href="/login" className="text-sm bg-yellow-400 text-gray-900 font-semibold px-3 py-1 rounded hover:bg-yellow-300 transition-colors flex-shrink-0">
+              <Link
+                href="/login"
+                className="text-sm bg-celeste-500 text-white font-semibold px-4 py-1.5 rounded-lg hover:bg-celeste-600 transition-colors flex-shrink-0 shadow-sm shadow-celeste-500/30"
+              >
                 Entrar
               </Link>
             )}

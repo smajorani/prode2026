@@ -3,18 +3,18 @@
 import { useState } from "react";
 
 const COLORS = [
-  "#60A5FA", // celeste
-  "#FB923C", // naranja
-  "#4ADE80", // verde
-  "#C4956A", // marrón suave
-  "#A78BFA", // violeta
-  "#2DD4BF", // turquesa
-  "#F472B6", // rosa
-  "#86EFAC", // verde menta
-  "#FCD34D", // amarillo
-  "#818CF8", // índigo
-  "#6EE7B7", // esmeralda
-  "#FCA5A5", // rojo suave
+  "#1f93da", // celeste
+  "#F97316", // naranja
+  "#16A34A", // verde
+  "#9333EA", // violeta
+  "#0D9488", // turquesa
+  "#DB2777", // rosa
+  "#0EA5E9", // cielo
+  "#CA8A04", // ámbar
+  "#DC2626", // rojo
+  "#4F46E5", // índigo
+  "#059669", // esmeralda
+  "#E11D48", // rosa fuerte
 ];
 
 function getColor(uid: string): string {

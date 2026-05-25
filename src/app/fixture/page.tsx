@@ -28,12 +28,12 @@ function formatDate(iso: string) {
 
 function Flag({ code, size = "sm" }: { code: string; size?: "sm" | "xs" }) {
   const cls = size === "xs" ? "w-5 h-3.5" : "w-6 h-4";
-  if (!code) return <span className={`${cls} bg-gray-700 rounded inline-block flex-shrink-0`} />;
+  if (!code) return <span className={`${cls} bg-gray-200 rounded inline-block flex-shrink-0`} />;
   return (
     <img
       src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`}
       alt={code}
-      className={`${cls} object-cover rounded-sm inline-block flex-shrink-0`}
+      className={`${cls} object-cover rounded-sm inline-block flex-shrink-0 ring-1 ring-black/5`}
     />
   );
 }
@@ -85,26 +85,27 @@ function computeStandings(source: Match[], group: string): TeamStats[] {
 }
 
 function MatchRow({ match }: { match: Match }) {
+  const played = match.homeScore !== null && match.awayScore !== null;
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3">
+    <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 shadow-[var(--shadow-card)]">
       <div className="flex-1 flex items-center gap-3 min-w-0">
         <div className="flex items-center gap-2 flex-1 justify-end">
-          <span className="font-semibold text-sm text-white text-right">{match.homeTeam}</span>
+          <span className="font-semibold text-sm text-ink-900 text-right">{match.homeTeam}</span>
           <Flag code={match.homeFlagCode} />
         </div>
         <div className="flex-shrink-0 w-14 text-center">
-          {match.homeScore !== null && match.awayScore !== null ? (
-            <span className="font-bold text-white text-sm">{match.homeScore} – {match.awayScore}</span>
+          {played ? (
+            <span className="font-bold text-ink-900 text-sm tabular-nums">{match.homeScore} – {match.awayScore}</span>
           ) : (
-            <span className="text-gray-600 text-xs font-bold">vs</span>
+            <span className="text-gray-300 text-xs font-bold">vs</span>
           )}
         </div>
         <div className="flex items-center gap-2 flex-1">
           <Flag code={match.awayFlagCode} />
-          <span className="font-semibold text-sm text-white">{match.awayTeam}</span>
+          <span className="font-semibold text-sm text-ink-900">{match.awayTeam}</span>
         </div>
       </div>
-      <div className="text-xs text-gray-500 text-right flex-shrink-0 hidden sm:block">
+      <div className="text-xs text-gray-400 text-right flex-shrink-0 hidden sm:block">
         <div>{formatDate(match.date)}</div>
         <div>{match.city}</div>
       </div>
@@ -115,14 +116,14 @@ function MatchRow({ match }: { match: Match }) {
 function GroupStandings({ standings }: { standings: TeamStats[] }) {
   const cols = ["PJ", "G", "E", "P", "GF", "GC", "DG", "Pts"];
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-5">
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-5 shadow-[var(--shadow-card)]">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-800">
-            <th className="text-left pl-3 pr-1 py-2.5 text-xs font-semibold text-gray-500 w-5">#</th>
-            <th className="text-left px-1 py-2.5 text-xs font-semibold text-gray-500">Equipo</th>
+          <tr className="border-b border-gray-200 bg-gray-50/60">
+            <th className="text-left pl-3 pr-1 py-2.5 text-xs font-semibold text-gray-400 w-5">#</th>
+            <th className="text-left px-1 py-2.5 text-xs font-semibold text-gray-400">Equipo</th>
             {cols.map((c) => (
-              <th key={c} className={`px-1.5 py-2.5 text-xs font-semibold text-center ${c === "Pts" ? "text-yellow-400" : "text-gray-500"}`}>{c}</th>
+              <th key={c} className={`px-1.5 py-2.5 text-xs font-semibold text-center ${c === "Pts" ? "text-celeste-600" : "text-gray-400"}`}>{c}</th>
             ))}
           </tr>
         </thead>
@@ -131,26 +132,26 @@ function GroupStandings({ standings }: { standings: TeamStats[] }) {
             const dg = t.gf - t.gc;
             const qualified = i < 2;
             return (
-              <tr key={t.team} className={`border-b border-gray-800/60 last:border-0 ${qualified ? "bg-yellow-400/[0.03]" : ""}`}>
+              <tr key={t.team} className={`border-b border-gray-100 last:border-0 ${qualified ? "bg-celeste-50/60" : ""}`}>
                 <td className="pl-3 pr-1 py-2.5">
-                  <span className={`text-xs font-bold ${qualified ? "text-yellow-400" : "text-gray-600"}`}>{i + 1}</span>
+                  <span className={`text-xs font-bold ${qualified ? "text-celeste-600" : "text-gray-300"}`}>{i + 1}</span>
                 </td>
                 <td className="px-1 py-2.5">
                   <div className="flex items-center gap-1.5">
                     <Flag code={t.flagCode} size="xs" />
-                    <span className="font-medium text-white text-xs">{t.team}</span>
+                    <span className="font-medium text-ink-900 text-xs">{t.team}</span>
                   </div>
                 </td>
-                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.pj}</td>
-                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.g}</td>
-                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.e}</td>
-                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.p}</td>
-                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.gf}</td>
-                <td className="px-1.5 py-2.5 text-center text-xs text-gray-400">{t.gc}</td>
-                <td className={`px-1.5 py-2.5 text-center text-xs font-medium ${dg > 0 ? "text-green-400" : dg < 0 ? "text-red-400" : "text-gray-400"}`}>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-500 tabular-nums">{t.pj}</td>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-500 tabular-nums">{t.g}</td>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-500 tabular-nums">{t.e}</td>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-500 tabular-nums">{t.p}</td>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-500 tabular-nums">{t.gf}</td>
+                <td className="px-1.5 py-2.5 text-center text-xs text-gray-500 tabular-nums">{t.gc}</td>
+                <td className={`px-1.5 py-2.5 text-center text-xs font-medium tabular-nums ${dg > 0 ? "text-emerald-600" : dg < 0 ? "text-red-500" : "text-gray-400"}`}>
                   {dg > 0 ? `+${dg}` : dg}
                 </td>
-                <td className="px-1.5 pr-3 py-2.5 text-center text-xs font-bold text-yellow-400">{t.pts}</td>
+                <td className="px-1.5 pr-3 py-2.5 text-center text-xs font-bold text-celeste-600 tabular-nums">{t.pts}</td>
               </tr>
             );
           })}
@@ -182,14 +183,14 @@ export default function FixturePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-6">Fixture Mundial 2026</h1>
+      <h1 className="text-2xl sm:text-3xl font-display font-extrabold text-ink-900 mb-6">Fixture Mundial 2026</h1>
 
       {/* Phase tabs */}
       <div className="flex gap-2 flex-wrap mb-4">
         {PHASE_ORDER.map((ph) => (
           <button key={ph} onClick={() => { setActivePhase(ph); if (ph === "group") setActiveGroup("A"); }}
-            className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-              activePhase === ph ? "bg-yellow-400 text-gray-900" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+            className={`text-xs px-3.5 py-2 rounded-full font-semibold transition-colors ${
+              activePhase === ph ? "bg-celeste-500 text-white shadow-sm shadow-celeste-500/30" : "bg-white border border-gray-200 text-gray-500 hover:border-celeste-300 hover:text-celeste-600"
             }`}>
             {PHASE_LABELS[ph]}
           </button>
@@ -201,8 +202,8 @@ export default function FixturePage() {
         <div className="flex gap-1.5 flex-wrap mb-5">
           {"ABCDEFGHIJKL".split("").map((g) => (
             <button key={g} onClick={() => setActiveGroup(g)}
-              className={`w-8 h-8 rounded font-bold text-sm transition-colors ${
-                activeGroup === g ? "bg-yellow-400 text-gray-900" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              className={`w-9 h-9 rounded-lg font-bold text-sm transition-colors ${
+                activeGroup === g ? "bg-celeste-500 text-white shadow-sm shadow-celeste-500/30" : "bg-white border border-gray-200 text-gray-500 hover:border-celeste-300 hover:text-celeste-600"
               }`}>
               {g}
             </button>

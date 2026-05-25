@@ -1,0 +1,21 @@
+export default function Ball({ size = 24, className = "" }: { size?: number; className?: string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="16" cy="16" r="15" fill="#1f93da" />
+      <g fill="none" stroke="#ffffff" strokeWidth="1.6" strokeLinecap="round">
+        <line x1="16" y1="11.4" x2="16" y2="2.2" />
+        <line x1="20.38" y1="14.58" x2="29.4" y2="11.7" />
+        <line x1="18.7" y1="19.72" x2="24.2" y2="27.4" />
+        <line x1="13.3" y1="19.72" x2="7.8" y2="27.4" />
+        <line x1="11.62" y1="14.58" x2="2.6" y2="11.7" />
+      </g>
+      <path d="M16 11.4 L20.38 14.58 L18.7 19.72 L13.3 19.72 L11.62 14.58 Z" fill="#ffffff" />
+    </svg>
+  );
+}

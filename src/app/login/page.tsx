@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import Ball from "@/components/Ball";
 
 export default function LoginPage() {
   const { loginWithEmail, registerWithEmail, loginWithGoogle } = useAuth();
@@ -60,30 +61,36 @@ export default function LoginPage() {
     }
   }
 
+  const inputCls =
+    "bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-ink-900 placeholder:text-gray-400 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20 transition";
+
   return (
-    <div className="min-h-[70vh] flex items-center justify-center">
-      <div className="w-full max-w-sm bg-gray-900 rounded-xl border border-gray-800 p-8">
-        <h1 className="text-2xl font-bold mb-1">
-          {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
+    <div className="min-h-[72vh] flex items-center justify-center">
+      <div className="w-full max-w-sm bg-white rounded-2xl border border-gray-200 p-8 shadow-[var(--shadow-md)]">
+        <div className="flex justify-center mb-5">
+          <Ball size={40} />
+        </div>
+        <h1 className="text-2xl font-display font-extrabold text-ink-900 text-center mb-1">
+          {mode === "login" ? "Iniciá sesión" : "Creá tu cuenta"}
         </h1>
-        <p className="text-gray-400 text-sm mb-6">
+        <p className="text-gray-500 text-sm text-center mb-7">
           {mode === "login" ? "¿No tenés cuenta?" : "¿Ya tenés cuenta?"}{" "}
           <button
             onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}
-            className="text-yellow-400 hover:underline"
+            className="text-celeste-600 font-semibold hover:text-celeste-700"
           >
             {mode === "login" ? "Registrate" : "Iniciá sesión"}
           </button>
         </p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {mode === "register" && (
             <input
               type="text"
               placeholder="Tu nombre (para el ranking)"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-400"
+              className={inputCls}
               required
             />
           )}
@@ -92,7 +99,7 @@ export default function LoginPage() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-400"
+            className={inputCls}
             required
           />
           <input
@@ -100,32 +107,32 @@ export default function LoginPage() {
             placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-yellow-400"
+            className={inputCls}
             required
             minLength={6}
           />
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && <p className="text-red-600 text-sm">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="bg-yellow-400 text-gray-900 font-bold py-2.5 rounded-lg hover:bg-yellow-300 transition-colors disabled:opacity-50"
+            className="bg-celeste-500 text-white font-bold py-3 rounded-xl hover:bg-celeste-600 transition-colors disabled:opacity-50 shadow-sm shadow-celeste-500/30 mt-1"
           >
             {loading ? "Cargando..." : mode === "login" ? "Entrar" : "Crear cuenta"}
           </button>
         </form>
 
         <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-gray-700" />
-          <span className="text-gray-500 text-xs">o</span>
-          <div className="flex-1 h-px bg-gray-700" />
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-gray-400 text-xs">o</span>
+          <div className="flex-1 h-px bg-gray-200" />
         </div>
 
         <button
           onClick={handleGoogle}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 border border-gray-700 rounded-lg py-2.5 text-sm hover:bg-gray-800 transition-colors disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-3 text-sm font-medium text-ink-900 hover:bg-gray-50 transition-colors disabled:opacity-50"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

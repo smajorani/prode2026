@@ -37,8 +37,8 @@ function formatDate(iso: string) {
 }
 
 function Flag({ code }: { code: string }) {
-  if (!code) return <span className="w-5 h-3.5 bg-gray-700 rounded inline-block flex-shrink-0" />;
-  return <img src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`} alt={code} className="w-5 h-3.5 object-cover rounded-sm inline-block flex-shrink-0" />;
+  if (!code) return <span className="w-5 h-3.5 bg-gray-200 rounded inline-block flex-shrink-0" />;
+  return <img src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`} alt={code} className="w-5 h-3.5 object-cover rounded-sm inline-block flex-shrink-0 ring-1 ring-black/5" />;
 }
 
 function PredInput({ match, prediction, home, away, onChange }: {
@@ -51,9 +51,9 @@ function PredInput({ match, prediction, home, away, onChange }: {
   if (match.homeScore !== null && match.awayScore !== null) {
     return (
       <div className="flex items-center gap-2 text-sm">
-        <span className="font-bold text-white">{match.homeScore} - {match.awayScore}</span>
+        <span className="font-bold text-ink-900 tabular-nums">{match.homeScore} - {match.awayScore}</span>
         {prediction?.points !== null && prediction?.points !== undefined && (
-          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${prediction.points > 0 ? "bg-yellow-400/20 text-yellow-400" : "bg-gray-800 text-gray-500"}`}>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${prediction.points > 0 ? "bg-celeste-50 text-celeste-700" : "bg-gray-100 text-gray-400"}`}>
             {prediction.points > 0 ? `+${prediction.points}` : "0"} pts
           </span>
         )}
@@ -61,8 +61,8 @@ function PredInput({ match, prediction, home, away, onChange }: {
     );
   }
   if (locked) return (
-    <div className="flex items-center gap-1.5 text-sm text-gray-500">
-      {prediction ? <span className="font-mono">{prediction.homeScore} - {prediction.awayScore}</span> : <span className="italic text-xs">Sin prode</span>}
+    <div className="flex items-center gap-1.5 text-sm text-gray-400">
+      {prediction ? <span className="font-mono tabular-nums">{prediction.homeScore} - {prediction.awayScore}</span> : <span className="italic text-xs">Sin prode</span>}
       <span className="text-xs">🔒</span>
     </div>
   );
@@ -70,11 +70,11 @@ function PredInput({ match, prediction, home, away, onChange }: {
     <div className="flex items-center gap-1.5">
       <input type="number" min={0} max={20} value={home}
         onChange={(e) => onChange(match.id, e.target.value === "" ? "" : Number(e.target.value), away)}
-        className="w-9 text-center bg-gray-800 border border-gray-700 rounded py-1 text-sm text-white focus:outline-none focus:border-yellow-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
-      <span className="text-gray-600">-</span>
+        className="w-10 text-center bg-gray-50 border border-gray-200 rounded-lg py-1.5 text-sm text-ink-900 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+      <span className="text-gray-400">-</span>
       <input type="number" min={0} max={20} value={away}
         onChange={(e) => onChange(match.id, home, e.target.value === "" ? "" : Number(e.target.value))}
-        className="w-9 text-center bg-gray-800 border border-gray-700 rounded py-1 text-sm text-white focus:outline-none focus:border-yellow-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+        className="w-10 text-center bg-gray-50 border border-gray-200 rounded-lg py-1.5 text-sm text-ink-900 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
     </div>
   );
 }
@@ -89,14 +89,14 @@ function TeamSelect({ value, onChange, placeholder }: {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400 appearance-none pr-8"
+        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-ink-900 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20 appearance-none pr-8"
       >
         <option value="">{placeholder}</option>
         {[...ALL_TEAMS].sort((a, b) => a.team.localeCompare(b.team, "es")).map(({ team }) => (
           <option key={team} value={team}>{team}</option>
         ))}
       </select>
-      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500">▾</span>
+      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400">▾</span>
     </div>
   );
 }
@@ -138,20 +138,20 @@ function PlayerSelect({ team, value, onChange }: {
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className={`w-full bg-gray-800 border rounded-lg px-3 py-2.5 text-sm text-left flex items-center justify-between transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-          open ? "border-yellow-400" : "border-gray-700 hover:border-gray-500"
+        className={`w-full bg-gray-50 border rounded-lg px-3 py-2.5 text-sm text-left flex items-center justify-between transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+          open ? "border-celeste-500 ring-2 ring-celeste-500/20" : "border-gray-200 hover:border-gray-300"
         }`}
       >
-        <span className={value ? "text-white" : "text-gray-500"}>{value || placeholder}</span>
-        <span className={`text-gray-500 transition-transform duration-150 ${open ? "rotate-180" : ""}`}>▾</span>
+        <span className={value ? "text-ink-900" : "text-gray-400"}>{value || placeholder}</span>
+        <span className={`text-gray-400 transition-transform duration-150 ${open ? "rotate-180" : ""}`}>▾</span>
       </button>
 
       {open && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl overflow-hidden">
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-[var(--shadow-pop)] overflow-hidden">
           <div className="max-h-60 overflow-y-auto">
             {groups.map(({ label, players }) => (
               <div key={label}>
-                <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-yellow-400/80 bg-gray-900 sticky top-0">
+                <div className="px-3 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-celeste-600 bg-gray-50 sticky top-0">
                   {label}
                 </div>
                 {players.map((p) => (
@@ -161,8 +161,8 @@ function PlayerSelect({ team, value, onChange }: {
                     onClick={() => { onChange(p); setOpen(false); }}
                     className={`w-full text-left px-4 py-2 text-sm transition-colors ${
                       value === p
-                        ? "bg-yellow-400/10 text-yellow-400"
-                        : "text-gray-200 hover:bg-gray-700/70"
+                        ? "bg-celeste-50 text-celeste-700 font-medium"
+                        : "text-ink-800 hover:bg-gray-50"
                     }`}
                   >
                     {p}
@@ -196,25 +196,25 @@ function BonusPanel({
       )}
 
       {/* Scoring legend */}
-      <div className="bg-gray-900/60 border border-gray-800 rounded-xl px-4 py-3 text-xs text-gray-500 flex flex-wrap gap-x-5 gap-y-1">
-        <span><span className="text-yellow-400 font-semibold">Campeón exacto</span> → 20 pts</span>
-        <span><span className="text-yellow-400 font-semibold">Jugador exacto</span> → 15 pts</span>
-        <span><span className="text-gray-300 font-semibold">Solo el equipo</span> → 8 pts</span>
+      <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs text-gray-500 flex flex-wrap gap-x-5 gap-y-1">
+        <span><span className="text-celeste-600 font-semibold">Campeón exacto</span> → 20 pts</span>
+        <span><span className="text-celeste-600 font-semibold">Jugador exacto</span> → 15 pts</span>
+        <span><span className="text-ink-800 font-semibold">Solo el equipo</span> → 8 pts</span>
       </div>
 
       {/* Campeón */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-[var(--shadow-card)]">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-yellow-400 text-lg">🏆</span>
+          <span className="text-lg">🏆</span>
           <div>
-            <div className="font-semibold text-white text-sm">Campeón del Mundial</div>
+            <div className="font-semibold text-ink-900 text-sm">Campeón del Mundial</div>
             <div className="text-xs text-gray-500">20 puntos si acertás</div>
           </div>
           {champion && championSquad && (
             <img
               src={`https://flagcdn.com/w40/${championSquad.flagCode.toLowerCase()}.png`}
               alt={champion}
-              className="w-6 h-4 object-cover rounded-sm ml-auto"
+              className="w-6 h-4 object-cover rounded-sm ml-auto ring-1 ring-black/5"
             />
           )}
         </div>
@@ -222,18 +222,18 @@ function BonusPanel({
       </div>
 
       {/* Goleador */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-[var(--shadow-card)]">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-yellow-400 text-lg">⚽</span>
+          <span className="text-lg">⚽</span>
           <div>
-            <div className="font-semibold text-white text-sm">Goleador del torneo</div>
+            <div className="font-semibold text-ink-900 text-sm">Goleador del torneo</div>
             <div className="text-xs text-gray-500">15 pts jugador · 8 pts solo el equipo</div>
           </div>
           {tsTeam && SQUADS[tsTeam] && (
             <img
               src={`https://flagcdn.com/w40/${SQUADS[tsTeam].flagCode.toLowerCase()}.png`}
               alt={tsTeam}
-              className="w-6 h-4 object-cover rounded-sm ml-auto"
+              className="w-6 h-4 object-cover rounded-sm ml-auto ring-1 ring-black/5"
             />
           )}
         </div>
@@ -244,18 +244,18 @@ function BonusPanel({
       </div>
 
       {/* Mejor jugador */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-[var(--shadow-card)]">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-yellow-400 text-lg">⭐</span>
+          <span className="text-lg">⭐</span>
           <div>
-            <div className="font-semibold text-white text-sm">Mejor jugador del torneo</div>
+            <div className="font-semibold text-ink-900 text-sm">Mejor jugador del torneo</div>
             <div className="text-xs text-gray-500">15 pts jugador · 8 pts solo el equipo</div>
           </div>
           {bpTeam && SQUADS[bpTeam] && (
             <img
               src={`https://flagcdn.com/w40/${SQUADS[bpTeam].flagCode.toLowerCase()}.png`}
               alt={bpTeam}
-              className="w-6 h-4 object-cover rounded-sm ml-auto"
+              className="w-6 h-4 object-cover rounded-sm ml-auto ring-1 ring-black/5"
             />
           )}
         </div>
@@ -269,7 +269,7 @@ function BonusPanel({
         <button
           onClick={onSave}
           disabled={saving}
-          className="w-full bg-yellow-400 text-gray-900 font-bold py-3 rounded-xl text-sm hover:bg-yellow-300 disabled:opacity-50 transition-colors"
+          className="w-full bg-celeste-500 text-white font-bold py-3 rounded-xl text-sm hover:bg-celeste-600 disabled:opacity-50 transition-colors shadow-sm shadow-celeste-500/30"
         >
           {saving ? "Guardando..." : "Guardar Bonus"}
         </button>
@@ -636,7 +636,7 @@ export default function TournamentDetailPage() {
     <div className="max-w-2xl mx-auto">
 
       {/* Toasts */}
-      <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-green-500 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-lg transition-all duration-300 ${
+      <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-emerald-500 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-lg transition-all duration-300 ${
         toast ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
       }`}>
         <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -644,7 +644,7 @@ export default function TournamentDetailPage() {
         </svg>
         Partido guardado
       </div>
-      <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-yellow-400 text-gray-900 text-sm font-semibold px-5 py-3 rounded-xl shadow-lg transition-all duration-300 ${
+      <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-celeste-500 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-lg transition-all duration-300 ${
         bonusToast ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
       }`}>
         <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -655,37 +655,37 @@ export default function TournamentDetailPage() {
 
       {/* Banner unirse */}
       {!isMember && user && (
-        <div className="bg-yellow-400/10 border border-yellow-400/40 rounded-xl p-4 mb-6 flex items-center gap-3">
-          <div className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-          <p className="text-sm text-white">Uniéndote a <span className="font-semibold text-yellow-400">{tournament.name}</span>...</p>
+        <div className="bg-celeste-50 border border-celeste-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+          <div className="w-4 h-4 border-2 border-celeste-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+          <p className="text-sm text-ink-900">Uniéndote a <span className="font-semibold text-celeste-700">{tournament.name}</span>...</p>
         </div>
       )}
 
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
         <div>
-          <Link href="/mis-predicciones" className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-200 transition-colors mb-2 group">
+          <Link href="/mis-predicciones" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-ink-900 transition-colors mb-2 group">
             <svg className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             Mis torneos
           </Link>
-          <h1 className="text-xl font-bold text-white">{tournament.name}</h1>
+          <h1 className="text-2xl font-display font-extrabold text-ink-900">{tournament.name}</h1>
           <p className="text-gray-500 text-sm">{tournament.members.length} {tournament.members.length === 1 ? "participante" : "participantes"}</p>
         </div>
         {isAdmin && <button onClick={share}
-          className={`flex items-center gap-2 border rounded-lg px-4 py-2 text-sm transition-all mt-5 ${
-            copied ? "border-yellow-400/50 text-yellow-400 bg-yellow-400/10" : "border-gray-700 text-gray-300 bg-gray-800 hover:bg-gray-700"
+          className={`flex items-center gap-2 border rounded-xl px-4 py-2 text-sm transition-all mt-5 ${
+            copied ? "border-celeste-300 text-celeste-700 bg-celeste-50" : "border-gray-200 text-ink-900 bg-white hover:bg-gray-50"
           }`}>
           {copied ? (
-            <span>✓ ¡Copiado!</span>
+            <span className="font-semibold">✓ ¡Copiado!</span>
           ) : (
             <>
               <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
               </svg>
-              <span>Invitar</span>
-              <span className="font-mono text-xs text-yellow-400 tracking-widest">{tournament.id}</span>
+              <span className="font-medium">Invitar</span>
+              <span className="font-mono text-xs text-celeste-600 tracking-widest">{tournament.id}</span>
             </>
           )}
         </button>}
@@ -693,11 +693,11 @@ export default function TournamentDetailPage() {
 
       {/* Tabs */}
       <div className="flex items-center gap-3 mt-5 mb-5">
-        <div className="flex bg-gray-900 border border-gray-800 rounded-xl p-1">
+        <div className="flex bg-gray-100 rounded-xl p-1">
           {(["tabla", "fixture"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
-                tab === t ? "bg-yellow-400 text-gray-900 shadow-sm" : "text-gray-400 hover:text-white"
+                tab === t ? "bg-celeste-500 text-white shadow-sm shadow-celeste-500/30" : "text-gray-500 hover:text-ink-900"
               }`}>
               {t === "tabla" ? "Tabla" : "Fixture"}
             </button>
@@ -705,11 +705,11 @@ export default function TournamentDetailPage() {
         </div>
 
         {isAdmin && (
-          <div className="flex bg-gray-800 border border-gray-700 rounded-xl p-1">
+          <div className="flex bg-gray-100 rounded-xl p-1">
             <button
               onClick={() => setTab(tab === "admin" ? "tabla" : "admin")}
               className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
-                tab === "admin" ? "bg-green-500 text-white shadow-sm" : "text-gray-400 hover:text-white"
+                tab === "admin" ? "bg-emerald-500 text-white shadow-sm" : "text-gray-500 hover:text-ink-900"
               }`}>
               ⚙ Admin
             </button>
@@ -722,8 +722,8 @@ export default function TournamentDetailPage() {
         <div className="flex flex-col gap-2">
           {members.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-400 font-medium">Sin participantes aún</p>
-              <p className="text-gray-600 text-sm mt-1">Compartí el código para que se unan</p>
+              <p className="text-gray-500 font-medium">Sin participantes aún</p>
+              <p className="text-gray-400 text-sm mt-1">Compartí el código para que se unan</p>
             </div>
           )}
           {members.map((u) => {
@@ -731,13 +731,13 @@ export default function TournamentDetailPage() {
             const pos = members.filter(m => (m.totalPoints || 0) > (u.totalPoints || 0)).length + 1;
             const name = u.displayName || u.email || "Jugador";
             return (
-              <div key={u.uid} className={`flex items-center gap-3 rounded-xl px-4 py-3.5 border ${
-                isMe ? "bg-yellow-400/5 border-yellow-400/40" : "bg-gray-900 border-gray-800"
+              <div key={u.uid} className={`flex items-center gap-3 rounded-xl px-4 py-3.5 border shadow-[var(--shadow-card)] ${
+                isMe ? "bg-celeste-50 border-celeste-300" : "bg-white border-gray-200"
               }`}>
                 {/* Posición */}
                 <div className={`w-8 text-center font-bold flex-shrink-0 ${
-                  pos === 1 ? "text-2xl" : "text-base text-gray-500"
-                } ${pos === 1 ? "text-yellow-400" : pos === 2 ? "text-gray-300" : pos === 3 ? "text-amber-600" : ""}`}>
+                  pos === 1 ? "text-2xl" : "text-base text-gray-400"
+                } ${pos === 1 ? "text-celeste-600" : pos === 2 ? "text-gray-500" : pos === 3 ? "text-amber-600" : ""}`}>
                   {pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : pos}
                 </div>
 
@@ -746,21 +746,21 @@ export default function TournamentDetailPage() {
 
                 {/* Nombre + stats */}
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-white text-sm flex items-center gap-1.5 flex-wrap">
+                  <div className="font-semibold text-ink-900 text-sm flex items-center gap-1.5 flex-wrap">
                     {name}
-                    {isMe && <span className="text-xs text-yellow-400 font-normal">(vos)</span>}
+                    {isMe && <span className="text-xs text-celeste-600 font-normal">(vos)</span>}
                   </div>
-                  <div className="text-xs text-gray-500 mt-0.5 flex gap-3">
+                  <div className="text-xs text-gray-400 mt-0.5 flex gap-3">
                     <span>{u.predictionsCount || 0} predicciones</span>
-                    <span className="text-yellow-400/70">{u.partialCount || 0} parciales</span>
-                    <span className="text-green-500/80">{u.exactCount || 0} exactos</span>
+                    <span className="text-celeste-600/80">{u.partialCount || 0} parciales</span>
+                    <span className="text-emerald-600/90">{u.exactCount || 0} exactos</span>
                   </div>
                 </div>
 
                 {/* Puntos */}
                 <div className="text-right flex-shrink-0">
-                  <div className="text-2xl font-bold text-yellow-400 leading-none">{u.totalPoints || 0}</div>
-                  <div className="text-xs text-gray-600 mt-0.5">pts</div>
+                  <div className="text-2xl font-display font-extrabold text-celeste-600 leading-none tabular-nums">{u.totalPoints || 0}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">pts</div>
                 </div>
               </div>
             );
@@ -788,11 +788,11 @@ export default function TournamentDetailPage() {
                 return (
                   <button key={ph}
                     onClick={() => { if (!unlocked) return; setActivePhase(ph); if (ph === "group") setActiveGroup("A"); }}
-                    className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-                      !unlocked   ? "bg-gray-800/50 text-gray-600 cursor-not-allowed opacity-50"
-                      : isActive  ? "bg-yellow-400 text-gray-900"
-                      : phDone    ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                      :             "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-colors ${
+                      !unlocked   ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                      : isActive  ? "bg-celeste-500 text-white shadow-sm shadow-celeste-500/30"
+                      : phDone    ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                      :             "bg-white border border-gray-200 text-gray-500 hover:border-celeste-300 hover:text-celeste-600"
                     }`}>
                     {PHASE_LABELS[ph]}
                   </button>
@@ -806,7 +806,7 @@ export default function TournamentDetailPage() {
                   <button
                     onClick={handleSaveAll}
                     disabled={saving || Object.keys(localEdits).length === 0}
-                    className="flex items-center gap-1.5 text-xs bg-yellow-400 text-gray-900 font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-40 hover:bg-yellow-300"
+                    className="flex items-center gap-1.5 text-xs bg-celeste-500 text-white font-bold px-3 py-1.5 rounded-full transition-colors disabled:opacity-40 hover:bg-celeste-600 shadow-sm shadow-celeste-500/30"
                   >
                     {saving ? (
                       <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -819,7 +819,7 @@ export default function TournamentDetailPage() {
                 <button
                   onClick={handleRandomFill}
                   disabled={randomFilling || (activeGroup !== "BONUS" && shownMatches.every((m) => predMap[m.id] || new Date(m.date) <= new Date()))}
-                  className="flex items-center gap-1.5 text-xs bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 px-3 py-1.5 rounded-full font-medium transition-colors disabled:opacity-40"
+                  className="flex items-center gap-1.5 text-xs bg-white border border-gray-200 text-gray-600 hover:border-celeste-300 hover:text-celeste-600 px-3 py-1.5 rounded-full font-medium transition-colors disabled:opacity-40"
                 >
                   <svg className={`w-3.5 h-3.5 ${randomFilling ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -839,24 +839,24 @@ export default function TournamentDetailPage() {
                 const isActive = activeGroup === g;
                 return (
                   <button key={g} onClick={() => setActiveGroup(g)}
-                    className={`w-8 h-8 rounded font-bold text-sm transition-colors ${
-                      isActive ? "bg-yellow-400 text-gray-900"
-                      : gDone ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    className={`w-8 h-8 rounded-lg font-bold text-sm transition-colors ${
+                      isActive ? "bg-celeste-500 text-white shadow-sm shadow-celeste-500/30"
+                      : gDone ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                      : "bg-white border border-gray-200 text-gray-500 hover:border-celeste-300 hover:text-celeste-600"
                     }`}>
                     {g}
                   </button>
                 );
               })}
-              <div className="w-px h-5 bg-gray-700 mx-0.5" />
+              <div className="w-px h-5 bg-gray-200 mx-0.5" />
               <button
                 onClick={() => setActiveGroup("BONUS")}
-                className={`px-3 h-8 rounded font-bold text-sm transition-colors flex items-center gap-1.5 ${
+                className={`px-3 h-8 rounded-lg font-bold text-sm transition-colors flex items-center gap-1.5 ${
                   activeGroup === "BONUS"
-                    ? "bg-yellow-400 text-gray-900"
+                    ? "bg-celeste-500 text-white shadow-sm shadow-celeste-500/30"
                     : bonusPred && (bonusPred.champion || bonusPred.topScorerPlayer || bonusPred.bestPlayerPlayer)
-                    ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                    : "bg-white border border-gray-200 text-gray-500 hover:border-celeste-300 hover:text-celeste-600"
                 }`}
               >
                 ★ Bonus
@@ -883,22 +883,22 @@ export default function TournamentDetailPage() {
           ) : (
             <div className="flex flex-col gap-2">
               {shownMatches.map((match) => (
-                <div key={match.id} className="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2.5 flex flex-col sm:flex-row sm:items-center gap-2">
+                <div key={match.id} className="bg-white border border-gray-200 rounded-xl px-3 py-2.5 flex flex-col sm:flex-row sm:items-center gap-2 shadow-[var(--shadow-card)]">
                   {/* Teams */}
                   <div className="flex-1 flex items-center gap-2 min-w-0">
                     <div className="flex items-center gap-1.5 flex-1 justify-end">
-                      <span className="font-semibold text-sm text-white text-right">{match.homeTeam}</span>
+                      <span className="font-semibold text-sm text-ink-900 text-right">{match.homeTeam}</span>
                       <Flag code={match.homeFlagCode} />
                     </div>
-                    <span className="text-gray-600 text-xs font-bold flex-shrink-0">vs</span>
+                    <span className="text-gray-300 text-xs font-bold flex-shrink-0">vs</span>
                     <div className="flex items-center gap-1.5 flex-1">
                       <Flag code={match.awayFlagCode} />
-                      <span className="font-semibold text-sm text-white">{match.awayTeam}</span>
+                      <span className="font-semibold text-sm text-ink-900">{match.awayTeam}</span>
                     </div>
                   </div>
 
                   {/* Date */}
-                  <div className="text-xs text-gray-500 text-right sm:w-36 flex-shrink-0">
+                  <div className="text-xs text-gray-400 text-right sm:w-36 flex-shrink-0">
                     {formatDate(match.date)}
                   </div>
 
@@ -913,7 +913,7 @@ export default function TournamentDetailPage() {
                         onChange={handlePredChange}
                       />
                     ) : match.homeScore !== null ? (
-                      <span className="text-sm font-bold text-white">{match.homeScore} - {match.awayScore}</span>
+                      <span className="text-sm font-bold text-ink-900 tabular-nums">{match.homeScore} - {match.awayScore}</span>
                     ) : null}
                   </div>
                 </div>
@@ -928,8 +928,8 @@ export default function TournamentDetailPage() {
         <div className="flex flex-col gap-6">
 
           {/* Editar info */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-gray-300 mb-4">Información del torneo</h3>
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-[var(--shadow-card)]">
+            <h3 className="text-sm font-semibold text-ink-800 mb-4">Información del torneo</h3>
             <div className="flex flex-col gap-3">
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Nombre</label>
@@ -940,17 +940,17 @@ export default function TournamentDetailPage() {
                       onChange={(e) => setEditName(e.target.value)}
                       maxLength={40}
                       autoFocus
-                      className="flex-1 bg-gray-800 border border-yellow-400 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+                      className="flex-1 bg-gray-50 border border-celeste-500 ring-2 ring-celeste-500/20 rounded-lg px-3 py-2 text-sm text-ink-900 focus:outline-none"
                     />
-                    <button onClick={() => setEditingName(false)} className="text-xs text-gray-500 hover:text-gray-300 px-2">
+                    <button onClick={() => setEditingName(false)} className="text-xs text-gray-400 hover:text-ink-900 px-2">
                       Cancelar
                     </button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-300 text-sm">{editName || tournament.name}</span>
+                    <span className="text-ink-800 text-sm">{editName || tournament.name}</span>
                     <button onClick={() => setEditingName(true)} title="Editar nombre"
-                      className="text-gray-600 hover:text-yellow-400 transition-colors">
+                      className="text-gray-400 hover:text-celeste-600 transition-colors">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
@@ -966,13 +966,13 @@ export default function TournamentDetailPage() {
                   maxLength={200}
                   rows={2}
                   placeholder="Agregar descripción..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-400 resize-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-ink-900 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20 resize-none"
                 />
               </div>
               <button
                 onClick={handleSaveInfo}
                 disabled={adminSaving || !editName.trim()}
-                className="self-end bg-yellow-400 text-gray-900 font-bold px-5 py-2 rounded-lg text-sm hover:bg-yellow-300 disabled:opacity-50 transition-colors"
+                className="self-end bg-celeste-500 text-white font-bold px-5 py-2 rounded-lg text-sm hover:bg-celeste-600 disabled:opacity-50 transition-colors shadow-sm shadow-celeste-500/30"
               >
                 {adminSaving ? "Guardando..." : "Guardar cambios"}
               </button>
@@ -980,8 +980,8 @@ export default function TournamentDetailPage() {
           </div>
 
           {/* Gestión de miembros */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-gray-300 mb-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-[var(--shadow-card)]">
+            <h3 className="text-sm font-semibold text-ink-800 mb-4">
               Participantes ({members.length})
             </h3>
             <div className="flex flex-col gap-2">
@@ -993,16 +993,16 @@ export default function TournamentDetailPage() {
                 const name = u.displayName || u.email || "Jugador";
 
                 return (
-                  <div key={u.uid} className="flex items-center gap-3 py-2 border-b border-gray-800 last:border-0">
+                  <div key={u.uid} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
                     <UserAvatar uid={u.uid} photoURL={u.photoURL} size={32} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm text-white font-medium flex items-center gap-1.5 flex-wrap">
+                      <div className="text-sm text-ink-900 font-medium flex items-center gap-1.5 flex-wrap">
                         {name}
-                        {isCreator && <span className="text-xs text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded">Creador</span>}
-                        {!isCreator && isUAdmin && <span className="text-xs text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">Admin</span>}
-                        {isMe && <span className="text-xs text-gray-500">(vos)</span>}
+                        {isCreator && <span className="text-xs text-celeste-700 bg-celeste-50 px-1.5 py-0.5 rounded">Creador</span>}
+                        {!isCreator && isUAdmin && <span className="text-xs text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">Admin</span>}
+                        {isMe && <span className="text-xs text-gray-400">(vos)</span>}
                       </div>
-                      <div className="text-xs text-gray-600">{u.totalPoints || 0} pts</div>
+                      <div className="text-xs text-gray-400">{u.totalPoints || 0} pts</div>
                     </div>
 
                     {/* Acciones (no sobre el creador ni sobre uno mismo) */}
@@ -1012,7 +1012,7 @@ export default function TournamentDetailPage() {
                           <button
                             onClick={() => handleDemote(u.uid)}
                             disabled={busy}
-                            className="text-xs border border-gray-700 text-gray-400 px-2 py-1 rounded hover:bg-gray-800 disabled:opacity-40 transition-colors"
+                            className="text-xs border border-gray-200 text-gray-500 px-2 py-1 rounded hover:bg-gray-50 disabled:opacity-40 transition-colors"
                           >
                             {busy ? "..." : "Quitar admin"}
                           </button>
@@ -1020,7 +1020,7 @@ export default function TournamentDetailPage() {
                           <button
                             onClick={() => handlePromote(u.uid)}
                             disabled={busy}
-                            className="text-xs border border-blue-400/30 text-blue-400 px-2 py-1 rounded hover:bg-blue-400/10 disabled:opacity-40 transition-colors"
+                            className="text-xs border border-indigo-200 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-50 disabled:opacity-40 transition-colors"
                           >
                             {busy ? "..." : "Hacer admin"}
                           </button>
@@ -1028,7 +1028,7 @@ export default function TournamentDetailPage() {
                         <button
                           onClick={() => handleRemoveMember(u.uid)}
                           disabled={busy}
-                          className="text-xs border border-red-400/30 text-red-400 px-2 py-1 rounded hover:bg-red-400/10 disabled:opacity-40 transition-colors"
+                          className="text-xs border border-red-200 text-red-500 px-2 py-1 rounded hover:bg-red-50 disabled:opacity-40 transition-colors"
                         >
                           {busy ? "..." : "Quitar"}
                         </button>
@@ -1045,20 +1045,20 @@ export default function TournamentDetailPage() {
       {/* ── MODAL BIENVENIDA (usuarios sin sesión) ── */}
       {showModal && !user && tournament && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative bg-gray-900 border border-gray-800 rounded-2xl p-7 w-full max-w-sm shadow-2xl">
+          <div className="absolute inset-0 bg-ink-900/50 backdrop-blur-sm" />
+          <div className="relative bg-white border border-gray-200 rounded-2xl p-7 w-full max-w-sm shadow-[var(--shadow-pop)]">
 
             {modalView === "welcome" ? (
               <>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Te invitaron a</p>
-                <h2 className="text-2xl font-bold text-white mb-1">{tournament.name}</h2>
-                <p className="text-sm text-gray-400 mb-7">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Te invitaron a</p>
+                <h2 className="text-2xl font-display font-extrabold text-ink-900 mb-1">{tournament.name}</h2>
+                <p className="text-sm text-gray-500 mb-7">
                   {tournament.members.length} {tournament.members.length === 1 ? "participante" : "participantes"} · Registrate para predecir y competir.
                 </p>
 
                 {/* Google */}
                 <button onClick={handleGoogleAuth}
-                  className="w-full flex items-center justify-center gap-3 bg-white text-gray-900 font-semibold py-3 rounded-xl mb-3 hover:bg-gray-100 transition-colors text-sm">
+                  className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 text-ink-900 font-semibold py-3 rounded-xl mb-3 hover:bg-gray-50 transition-colors text-sm">
                   <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -1070,39 +1070,39 @@ export default function TournamentDetailPage() {
 
                 {/* Email */}
                 <button onClick={() => { setModalView("email"); setRegError(""); }}
-                  className="w-full bg-yellow-400 text-gray-900 font-bold py-3 rounded-xl mb-5 hover:bg-yellow-300 transition-colors text-sm">
+                  className="w-full bg-celeste-500 text-white font-bold py-3 rounded-xl mb-5 hover:bg-celeste-600 transition-colors text-sm shadow-sm shadow-celeste-500/30">
                   Registrarse con email
                 </button>
 
-                {regError && <p className="text-red-400 text-xs text-center mb-3">{regError}</p>}
+                {regError && <p className="text-red-600 text-xs text-center mb-3">{regError}</p>}
 
                 {/* Ya tengo cuenta */}
-                <div className="text-center border-t border-gray-800 pt-4">
+                <div className="text-center border-t border-gray-100 pt-4">
                   <button
                     onClick={() => router.push(`/login?redirect=/torneos/${id}`)}
-                    className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                    className="text-sm text-gray-500 hover:text-ink-900 transition-colors"
                   >
-                    Ya tengo cuenta · <span className="text-gray-300 font-medium">Ingresar</span>
+                    Ya tengo cuenta · <span className="text-ink-900 font-semibold">Ingresar</span>
                   </button>
                 </div>
               </>
             ) : (
               <>
                 <button onClick={() => { setModalView("welcome"); setRegError(""); }}
-                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors mb-5">
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-ink-900 transition-colors mb-5">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
                   Volver
                 </button>
-                <h2 className="text-xl font-bold text-white mb-5">Crear cuenta</h2>
+                <h2 className="text-xl font-display font-extrabold text-ink-900 mb-5">Crear cuenta</h2>
 
                 <div className="flex flex-col gap-3 mb-4">
                   <input
                     placeholder="Tu nombre"
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
-                    className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400"
+                    className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-ink-900 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20"
                     autoFocus
                   />
                   <input
@@ -1110,7 +1110,7 @@ export default function TournamentDetailPage() {
                     placeholder="Email"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400"
+                    className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-ink-900 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20"
                   />
                   <input
                     type="password"
@@ -1118,23 +1118,23 @@ export default function TournamentDetailPage() {
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleEmailRegister()}
-                    className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400"
+                    className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-ink-900 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20"
                   />
                 </div>
 
-                {regError && <p className="text-red-400 text-xs mb-3">{regError}</p>}
+                {regError && <p className="text-red-600 text-xs mb-3">{regError}</p>}
 
                 <button onClick={handleEmailRegister} disabled={regLoading}
-                  className="w-full bg-yellow-400 text-gray-900 font-bold py-3 rounded-xl mb-4 hover:bg-yellow-300 disabled:opacity-50 transition-colors text-sm">
+                  className="w-full bg-celeste-500 text-white font-bold py-3 rounded-xl mb-4 hover:bg-celeste-600 disabled:opacity-50 transition-colors text-sm shadow-sm shadow-celeste-500/30">
                   {regLoading ? "Creando cuenta..." : "Crear cuenta y unirme"}
                 </button>
 
                 <div className="text-center">
                   <button
                     onClick={() => router.push(`/login?redirect=/torneos/${id}`)}
-                    className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                    className="text-sm text-gray-500 hover:text-ink-900 transition-colors"
                   >
-                    Ya tengo cuenta · <span className="text-gray-300 font-medium">Ingresar</span>
+                    Ya tengo cuenta · <span className="text-ink-900 font-semibold">Ingresar</span>
                   </button>
                 </div>
               </>

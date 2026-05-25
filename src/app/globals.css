@@ -1,20 +1,87 @@
 @import "tailwindcss";
 
+/*
+  Prode 2026 — sistema de diseño
+  Lienzo claro y aireado · celeste protagonista · negro para jerarquía · grises para respirar
+*/
+
 :root {
-  --background: #030712;
-  --foreground: #f9fafb;
+  /* Canvas y tinta */
+  --background: #f4f7fb;   /* gris muy claro con un dejo de celeste — respira */
+  --surface:    #ffffff;   /* cards */
+  --foreground: #0b1526;   /* casi negro, peso y jerarquía */
+
+  /* Sombras suaves (tono frío para integrarse al celeste) */
+  --shadow-card: 0 1px 2px rgba(11, 33, 64, 0.06);
+  --shadow-pop:  0 18px 50px -12px rgba(11, 33, 64, 0.22);
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
+
+  /* Escala celeste (protagonista) */
+  --color-celeste-50:  #edf6fd;
+  --color-celeste-100: #d4ebfb;
+  --color-celeste-200: #aedaf6;
+  --color-celeste-300: #79c4ef;
+  --color-celeste-400: #45ace6;
+  --color-celeste-500: #1f93da;
+  --color-celeste-600: #1277b6;
+  --color-celeste-700: #105f90;
+  --color-celeste-800: #134e74;
+  --color-celeste-900: #143f5d;
+
+  /* Tinta (near-black) para texto/jerarquía */
+  --color-ink-900: #0b1526;
+  --color-ink-800: #16263d;
+  --color-ink-700: #243752;
+
+  --font-display: var(--font-sora), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
+/* Headings con la display */
+h1, h2, h3 {
+  font-family: var(--font-sora), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Selección en celeste */
+::selection {
+  background: #aedaf6;
+  color: #0b1526;
+}
+
+/* Scrollbar discreta */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c5d3e2 transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: #c5d3e2;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: #aebfd2; }
+
+/* Inputs numéricos sin flechas */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -23,3 +90,9 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* Pelota girando lentamente en el hero */
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow { animation: spin-slow 14s linear infinite; }

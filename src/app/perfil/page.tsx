@@ -62,7 +62,7 @@ function DeleteSlider({ onComplete }: { onComplete: () => void }) {
   return (
     <div
       ref={containerRef}
-      className="relative h-12 bg-red-950/40 border border-red-800/40 rounded-full select-none"
+      className="relative h-12 bg-red-50 border border-red-200 rounded-full select-none"
       style={{ touchAction: "none" }}
       onMouseMove={(e) => onMove(e.clientX)}
       onMouseUp={onEnd}
@@ -71,7 +71,7 @@ function DeleteSlider({ onComplete }: { onComplete: () => void }) {
       onTouchEnd={onEnd}
     >
       {/* Label */}
-      <span className="absolute inset-0 flex items-center justify-center text-xs text-red-400/50 font-medium pointer-events-none pl-10">
+      <span className="absolute inset-0 flex items-center justify-center text-xs text-red-400 font-medium pointer-events-none pl-10">
         Deslizá para eliminar →
       </span>
       {/* Fill */}
@@ -215,10 +215,10 @@ export default function PerfilPage() {
   const currentPhoto = localPhoto ?? user.photoURL;
 
   return (
-    <div className="max-w-md mx-auto py-10 px-4">
+    <div className="max-w-md mx-auto py-8 px-4">
 
       {/* Toast */}
-      <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-green-500 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-lg transition-all duration-300 ${
+      <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-emerald-500 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-lg transition-all duration-300 ${
         toast ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
       }`}>
         <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -227,14 +227,14 @@ export default function PerfilPage() {
         {toast}
       </div>
 
-      <h1 className="text-xl font-bold text-white mb-8">Mi perfil</h1>
+      <h1 className="text-xl font-display font-extrabold text-ink-900 mb-8">Mi perfil</h1>
 
       {/* Avatar */}
       <div className="flex flex-col items-center gap-2 mb-8">
         <button
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="relative group rounded-full"
+          className="relative group rounded-full ring-4 ring-celeste-100"
           title="Cambiar foto"
         >
           <UserAvatar uid={user.uid} photoURL={currentPhoto} size={88} />
@@ -249,12 +249,12 @@ export default function PerfilPage() {
             )}
           </div>
         </button>
-        <p className="text-xs text-gray-500">Clic para cambiar la foto</p>
+        <p className="text-xs text-gray-400">Clic para cambiar la foto</p>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
       </div>
 
       {/* Datos */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col gap-4 mb-8">
+      <div className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-4 mb-8 shadow-[var(--shadow-card)]">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs text-gray-500">Nombre de usuario</label>
           <input
@@ -262,17 +262,17 @@ export default function PerfilPage() {
             onChange={(e) => setDisplayName(e.target.value)}
             maxLength={40}
             onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-400"
+            className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-ink-900 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20"
           />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs text-gray-500">Email</label>
-          <p className="text-sm text-gray-400 px-4 py-2.5">{user.email}</p>
+          <p className="text-sm text-gray-500 px-4 py-2.5">{user.email}</p>
         </div>
         <button
           onClick={handleSaveName}
           disabled={saving || !displayName.trim()}
-          className="self-end bg-yellow-400 text-gray-900 font-bold px-6 py-2.5 rounded-lg text-sm hover:bg-yellow-300 disabled:opacity-50 transition-colors"
+          className="self-end bg-celeste-500 text-white font-bold px-6 py-2.5 rounded-xl text-sm hover:bg-celeste-600 disabled:opacity-50 transition-colors shadow-sm shadow-celeste-500/30"
         >
           {saving ? "Guardando..." : "Guardar cambios"}
         </button>
@@ -281,7 +281,7 @@ export default function PerfilPage() {
       <div className="mt-16 flex justify-end">
         <button
           onClick={() => setDeleteStep("warn")}
-          className="text-xs text-red-800 hover:text-red-600 transition-colors"
+          className="text-xs text-gray-400 hover:text-red-600 transition-colors"
         >
           Eliminar cuenta
         </button>
@@ -290,15 +290,15 @@ export default function PerfilPage() {
       {/* ── MODAL 1: Advertencia ── */}
       {deleteStep === "warn" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setDeleteStep(null)} />
-          <div className="relative bg-gray-900 border border-gray-800 rounded-2xl p-7 w-full max-w-sm">
-            <div className="flex items-center justify-center w-12 h-12 bg-red-500/10 rounded-full mb-4 mx-auto">
+          <div className="absolute inset-0 bg-ink-900/50 backdrop-blur-sm" onClick={() => setDeleteStep(null)} />
+          <div className="relative bg-white border border-gray-200 rounded-2xl p-7 w-full max-w-sm shadow-[var(--shadow-pop)]">
+            <div className="flex items-center justify-center w-12 h-12 bg-red-50 rounded-full mb-4 mx-auto">
               <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
               </svg>
             </div>
-            <h2 className="text-lg font-bold text-white text-center mb-2">¿Eliminar tu cuenta?</h2>
-            <p className="text-sm text-gray-400 text-center mb-2">
+            <h2 className="text-lg font-display font-extrabold text-ink-900 text-center mb-2">¿Eliminar tu cuenta?</h2>
+            <p className="text-sm text-gray-500 text-center mb-2">
               Esto borrará permanentemente:
             </p>
             <ul className="text-sm text-gray-500 mb-6 space-y-1 pl-4 list-disc">
@@ -306,13 +306,13 @@ export default function PerfilPage() {
               <li>Todas tus predicciones y puntos</li>
               <li>Tu historial en todos los torneos</li>
             </ul>
-            <p className="text-xs text-gray-600 text-center mb-6">
+            <p className="text-xs text-gray-400 text-center mb-6">
               Si volvés a crear una cuenta con el mismo email, empezarás desde cero sin ningún registro previo.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteStep(null)}
-                className="flex-1 border border-gray-700 py-2.5 rounded-xl text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+                className="flex-1 border border-gray-200 py-2.5 rounded-xl text-sm text-ink-900 hover:bg-gray-50 transition-colors"
               >
                 Cancelar
               </button>
@@ -330,15 +330,15 @@ export default function PerfilPage() {
       {/* ── MODAL 2: Slider de confirmación ── */}
       {deleteStep === "slider" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-          <div className="relative bg-gray-900 border border-red-900/50 rounded-2xl p-7 w-full max-w-sm">
-            <h2 className="text-lg font-bold text-white text-center mb-1">Última oportunidad</h2>
+          <div className="absolute inset-0 bg-ink-900/60 backdrop-blur-sm" />
+          <div className="relative bg-white border border-red-200 rounded-2xl p-7 w-full max-w-sm shadow-[var(--shadow-pop)]">
+            <h2 className="text-lg font-display font-extrabold text-ink-900 text-center mb-1">Última oportunidad</h2>
             <p className="text-sm text-gray-500 text-center mb-8">
               Esta acción no se puede deshacer.
             </p>
 
             {deleting ? (
-              <div className="text-center text-gray-400 text-sm py-4">Eliminando cuenta...</div>
+              <div className="text-center text-gray-500 text-sm py-4">Eliminando cuenta...</div>
             ) : (
               <DeleteSlider onComplete={handleDeleteAccount} />
             )}
@@ -346,7 +346,7 @@ export default function PerfilPage() {
             <button
               onClick={() => setDeleteStep(null)}
               disabled={deleting}
-              className="w-full mt-5 text-sm text-gray-600 hover:text-gray-400 transition-colors disabled:opacity-40"
+              className="w-full mt-5 text-sm text-gray-400 hover:text-ink-900 transition-colors disabled:opacity-40"
             >
               Cancelar
             </button>
@@ -357,9 +357,9 @@ export default function PerfilPage() {
       {/* ── MODAL 3: Reautenticación ── */}
       {deleteStep === "reauth" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-          <div className="relative bg-gray-900 border border-red-900/50 rounded-2xl p-7 w-full max-w-sm">
-            <h2 className="text-lg font-bold text-white text-center mb-1">Confirmá tu identidad</h2>
+          <div className="absolute inset-0 bg-ink-900/60 backdrop-blur-sm" />
+          <div className="relative bg-white border border-red-200 rounded-2xl p-7 w-full max-w-sm shadow-[var(--shadow-pop)]">
+            <h2 className="text-lg font-display font-extrabold text-ink-900 text-center mb-1">Confirmá tu identidad</h2>
             <p className="text-sm text-gray-500 text-center mb-6">
               Por seguridad, necesitamos verificar que sos vos.
             </p>
@@ -368,7 +368,7 @@ export default function PerfilPage() {
               <button
                 onClick={handleReauth}
                 disabled={deleting}
-                className="w-full flex items-center justify-center gap-3 bg-white text-gray-900 font-semibold py-3 rounded-xl text-sm hover:bg-gray-100 disabled:opacity-50 transition-colors"
+                className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 text-ink-900 font-semibold py-3 rounded-xl text-sm hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
                 <svg viewBox="0 0 24 24" className="w-5 h-5 flex-shrink-0">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -386,10 +386,10 @@ export default function PerfilPage() {
                   value={reauthPassword}
                   onChange={(e) => setReauthPassword(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleReauth()}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-500 mb-3"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-ink-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 mb-3"
                   autoFocus
                 />
-                {reauthError && <p className="text-red-400 text-sm mb-3">{reauthError}</p>}
+                {reauthError && <p className="text-red-600 text-sm mb-3">{reauthError}</p>}
                 <button
                   onClick={handleReauth}
                   disabled={deleting || !reauthPassword}
@@ -403,7 +403,7 @@ export default function PerfilPage() {
             <button
               onClick={() => setDeleteStep(null)}
               disabled={deleting}
-              className="w-full mt-4 text-sm text-gray-600 hover:text-gray-400 transition-colors disabled:opacity-40"
+              className="w-full mt-4 text-sm text-gray-400 hover:text-ink-900 transition-colors disabled:opacity-40"
             >
               Cancelar
             </button>
