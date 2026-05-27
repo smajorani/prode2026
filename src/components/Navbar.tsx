@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useTournament } from "@/context/TournamentContext";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Ball from "@/components/Ball";
 
 export default function Navbar() {
   const { user, logout, loading } = useAuth();
   const { currentTournament, tournaments, setCurrentTournament } = useTournament();
   const pathname = usePathname();
+  const router = useRouter();
 
   const navLink = (href: string, label: string) => {
     const active = pathname === href;
@@ -38,15 +39,21 @@ export default function Navbar() {
         {!loading && (
           <nav className="flex items-center gap-5 flex-1 justify-end">
             {navLink("/fixture", "Fixture")}
+            <span className="hidden sm:contents">
+              {navLink("/como-funciona", "¿Cómo funciona?")}
+            </span>
             {user && navLink("/mis-predicciones", "Mis torneos")}
 
             {/* Selector de torneo rápido */}
-            {user && tournaments.length > 1 && (
+            {user && tournaments.length > 1 && pathname.startsWith("/torneos") && (
               <select
                 value={currentTournament?.id ?? ""}
                 onChange={(e) => {
                   const t = tournaments.find((t) => t.id === e.target.value);
-                  if (t) setCurrentTournament(t);
+                  if (t) {
+                    setCurrentTournament(t);
+                    router.push(`/torneos/${t.id}`);
+                  }
                 }}
                 className="bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-900 focus:outline-none focus:border-celeste-500 focus:ring-2 focus:ring-celeste-500/20 max-w-[130px] truncate"
               >

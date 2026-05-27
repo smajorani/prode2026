@@ -12,6 +12,7 @@ import {
   onSnapshot,
   serverTimestamp,
   writeBatch,
+  getCountFromServer,
   Unsubscribe,
 } from "firebase/firestore";
 import { db } from "./firebase";
@@ -195,4 +196,57 @@ export function subscribeLeaderboard(cb: (users: UserProfile[]) => void): Unsubs
     query(collection(db, "users"), orderBy("totalPoints", "desc")),
     (snap) => cb(snap.docs.map((d) => d.data() as UserProfile))
   );
+}
+
+// ── Admin stats ───────────────────────────────────────────────────────────
+
+export interface AdminStats {
+  totalTournaments: number;
+  totalUsers: number;
+  totalPredictions: number;
+  matchesWithResults: number;
+  tournamentsByDay: { date: string; count: number }[];
+  usersByDay: { date: string; count: number }[];
+}
+
+export async function getAdminStats(): Promise<AdminStats> {
+  const [tournamentsCount, usersCount, predictionsCount, resultsCount, tournamentsSnap, usersSnap] =
+    await Promise.all([
+      getCountFromServer(collection(db, "tournaments")),
+      getCountFromServer(collection(db, "users")),
+      getCountFromServer(collection(db, "predictions")),
+      getCountFromServer(query(collection(db, "matches"), where("homeScore", "!=", null))),
+      getDocs(collection(db, "tournaments")),
+      getDocs(collection(db, "users")),
+    ]);
+
+  function groupByDay(
+    docs: { data(): Record<string, unknown> }[],
+    field: string,
+    days: number
+  ): { date: string; count: number }[] {
+    const counts: Record<string, number> = {};
+    docs.forEach((d) => {
+      const val = d.data()[field];
+      if (typeof val === "string" && val.length >= 10) {
+        const date = val.slice(0, 10);
+        counts[date] = (counts[date] ?? 0) + 1;
+      }
+    });
+    return Array.from({ length: days }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (days - 1 - i));
+      const dateStr = d.toISOString().slice(0, 10);
+      return { date: dateStr, count: counts[dateStr] ?? 0 };
+    });
+  }
+
+  return {
+    totalTournaments: tournamentsCount.data().count,
+    totalUsers: usersCount.data().count,
+    totalPredictions: predictionsCount.data().count,
+    matchesWithResults: resultsCount.data().count,
+    tournamentsByDay: groupByDay(tournamentsSnap.docs, "createdAt", 14),
+    usersByDay: groupByDay(usersSnap.docs, "createdAt", 14),
+  };
 }

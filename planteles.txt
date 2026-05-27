@@ -1,0 +1,53 @@
+PLANTELES MUNDIAL 2026 — estado de carga
+=========================================
+
+Alemania         ✓
+Arabia Saudí     ✓
+Argelia          ✓
+Argentina        ✓
+Australia        ✓
+Austria          ✓
+Bélgica          ✓
+Bosnia Herz.     ✓
+Brasil           ✓
+Cabo Verde       ✓
+Canadá           ✓
+Catar            ✓
+Colombia         ✓
+Corea del Sur    ✓
+Costa de Marfil  ✓
+Croacia          ✓
+Curazao          ✓
+Ecuador          ✓
+Egipto           ✓
+Escocia          ✓
+España           ✓
+Estados Unidos   ✓
+Francia          ✓
+Ghana            ✓
+Haití            ✓
+Inglaterra       ✓
+Irak             ✓
+Irán             ✓
+Japón            ✓
+Jordania         ✓
+Marruecos        ✓
+México           ✓
+Noruega          ✓
+Nueva Zelanda    ✓
+Panamá           ✓
+Paraguay         ✓
+Países Bajos     ✓
+Portugal         ✓
+RD Congo         ✓
+Rep. Checa       ✓
+Senegal          ✓
+Sudáfrica        ✓
+Suecia           ✓
+Suiza            ✓
+Turquía          ✓
+Túnez            ✓
+Uruguay          ✓
+Uzbekistán       ✓
+
+48/48 cargados ✓

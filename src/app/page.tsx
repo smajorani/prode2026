@@ -52,6 +52,13 @@ export default function Home() {
           </div>
         ))}
       </div>
+
+      <Link
+        href="/como-funciona"
+        className="text-sm text-gray-400 hover:text-celeste-600 transition-colors mt-2"
+      >
+        ¿No sabés cómo funciona? →
+      </Link>
     </div>
   );
 }
