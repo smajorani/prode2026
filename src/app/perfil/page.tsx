@@ -333,7 +333,7 @@ export default function PerfilPage() {
         ) : (
           <>
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 bg-yellow-50 rounded-full flex items-center justify-center flex-shrink-0 text-xl">☕</div>
+              <div className="w-10 h-10 bg-yellow-50 rounded-full flex items-center justify-center flex-shrink-0 text-xl">⭐</div>
               <div>
                 <p className="font-semibold text-ink-900 text-sm">Apoyá el sitio — sin anuncios</p>
                 <p className="text-xs text-gray-400 mt-0.5">Con cualquier contribución eliminás los anuncios para siempre.</p>

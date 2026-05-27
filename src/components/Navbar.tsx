@@ -1,16 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { useTournament } from "@/context/TournamentContext";
 import { usePathname, useRouter } from "next/navigation";
 import Ball from "@/components/Ball";
+import { db } from "@/lib/firebase";
 
 export default function Navbar() {
   const { user, logout, loading } = useAuth();
   const { currentTournament, tournaments, setCurrentTournament } = useTournament();
   const pathname = usePathname();
   const router = useRouter();
+  const [isSupporter, setIsSupporter] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setIsSupporter(false); return; }
+    const unsub = onSnapshot(doc(db, "users", user.uid), (snap) => {
+      setIsSupporter(snap.data()?.supporter === true);
+    });
+    return unsub;
+  }, [user?.uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const navLink = (href: string, label: string) => {
     const active = pathname === href;
@@ -61,6 +73,15 @@ export default function Navbar() {
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
+            )}
+
+            {user && !isSupporter && (
+              <Link
+                href="/perfil"
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-yellow-300 text-yellow-700 bg-yellow-50 hover:bg-yellow-100 transition-colors flex-shrink-0"
+              >
+                Sin anuncios ★
+              </Link>
             )}
 
             {user ? (
