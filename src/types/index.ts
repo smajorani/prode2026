@@ -36,6 +36,7 @@ export interface UserProfile {
   partialCount: number;
   exactCount: number;
   createdAt: string;
+  supporter?: boolean;
 }
 
 export interface ScoringResult {

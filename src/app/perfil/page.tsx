@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateProfile, deleteUser, reauthenticateWithPopup, reauthenticateWithCredential, EmailAuthProvider, GoogleAuthProvider } from "firebase/auth";
-import { doc, updateDoc, getDocs, collection, query, where, writeBatch } from "firebase/firestore";
+import { doc, updateDoc, getDocs, collection, query, where, writeBatch, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { auth, db } from "@/lib/firebase";
 import UserAvatar from "@/components/UserAvatar";
@@ -105,6 +105,8 @@ export default function PerfilPage() {
   const [uploading, setUploading] = useState(false);
   const [localPhoto, setLocalPhoto] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [isSupporter, setIsSupporter] = useState(false);
+  const [supportLoading, setSupportLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Delete account state
@@ -117,6 +119,45 @@ export default function PerfilPage() {
     if (!loading && !user) router.push("/login");
     if (user) setDisplayName(user.displayName || "");
   }, [user, loading]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Suscripción en tiempo real al estado supporter
+  useEffect(() => {
+    if (!user) return;
+    const unsub = onSnapshot(doc(db, "users", user.uid), (snap) => {
+      setIsSupporter(snap.data()?.supporter === true);
+    });
+    return unsub;
+  }, [user?.uid]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Detectar retorno exitoso desde GalioPay
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("supporter=ok")) {
+      showToast("¡Pago recibido! Activando modo sin anuncios...");
+      window.history.replaceState({}, "", "/perfil");
+    }
+  }, []);
+
+  async function handleSupport() {
+    if (!user) return;
+    setSupportLoading(true);
+    try {
+      const res = await fetch("/api/galio/create-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid: user.uid }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error ?? "Error al generar el link de pago");
+      }
+    } catch {
+      alert("Error al generar el link de pago");
+    } finally {
+      setSupportLoading(false);
+    }
+  }
 
   function showToast(msg: string) {
     setToast(msg);
@@ -278,7 +319,37 @@ export default function PerfilPage() {
         </button>
       </div>
 
-      <div className="mt-16 flex justify-end">
+      {/* Supporter */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6 shadow-[var(--shadow-card)]">
+        {isSupporter ? (
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-yellow-50 rounded-full flex items-center justify-center flex-shrink-0 text-xl">⭐</div>
+            <div>
+              <p className="font-semibold text-ink-900 text-sm">¡Sos supporter!</p>
+              <p className="text-xs text-gray-400 mt-0.5">No ves anuncios en el sitio. ¡Gracias por apoyar!</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 bg-yellow-50 rounded-full flex items-center justify-center flex-shrink-0 text-xl">☕</div>
+              <div>
+                <p className="font-semibold text-ink-900 text-sm">Apoyá el sitio — sin anuncios</p>
+                <p className="text-xs text-gray-400 mt-0.5">Con cualquier contribución eliminás los anuncios para siempre.</p>
+              </div>
+            </div>
+            <button
+              onClick={handleSupport}
+              disabled={supportLoading}
+              className="w-full bg-yellow-400 hover:bg-yellow-500 text-ink-900 font-bold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50 shadow-sm"
+            >
+              {supportLoading ? "Generando link..." : "Apoyar →"}
+            </button>
+          </>
+        )}
+      </div>
+
+      <div className="mt-8 flex justify-end">
         <button
           onClick={() => setDeleteStep("warn")}
           className="text-xs text-gray-400 hover:text-red-600 transition-colors"

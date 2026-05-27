@@ -20,7 +20,7 @@ import { FIXTURE } from "@/lib/fixture";
 import { SQUADS, ALL_TEAMS } from "@/lib/squads";
 import { auth } from "@/lib/firebase";
 import { Tournament, UserProfile, Match, Prediction, Phase, BonusPrediction } from "@/types";
-import AdBanner from "@/components/AdBanner";
+import SupporterAdBanner from "@/components/SupporterAdBanner";
 
 // ── Fixture helpers ───────────────────────────────────────────────────────
 
@@ -719,7 +719,7 @@ export default function TournamentDetailPage() {
       </div>
 
       {/* Ad banner debajo de los tabs */}
-      {tab !== "admin" && <AdBanner className="mb-5 rounded-xl overflow-hidden" />}
+      {tab !== "admin" && <SupporterAdBanner className="mb-5 rounded-xl overflow-hidden" />}
 
       {/* ── TABLA ── */}
       {tab === "tabla" && (

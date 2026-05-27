@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { subscribeMatches } from "@/lib/firestore";
 import { Match, Phase } from "@/types";
 import { FIXTURE } from "@/lib/fixture";
-import AdBanner from "@/components/AdBanner";
+import SupporterAdBanner from "@/components/SupporterAdBanner";
 
 const PHASE_LABELS: Record<Phase, string> = {
   group: "Fase de Grupos",
@@ -213,7 +213,7 @@ export default function FixturePage() {
       )}
 
       {/* Ad banner entre tabs y contenido */}
-      <AdBanner className="mb-5 rounded-xl overflow-hidden" />
+      <SupporterAdBanner className="mb-5 rounded-xl overflow-hidden" />
 
       {activePhase === "group" ? (
         /* Desktop: partidos izquierda, tabla derecha. Mobile: tabla arriba, partidos abajo */
@@ -236,7 +236,7 @@ export default function FixturePage() {
             {shown.map((match) => <MatchRow key={match.id} match={match} />)}
           </div>
           <div className="w-full lg:w-[300px] flex-shrink-0">
-            <AdBanner className="rounded-xl overflow-hidden sticky top-24" />
+            <SupporterAdBanner className="rounded-xl overflow-hidden sticky top-24" />
           </div>
         </div>
       )}

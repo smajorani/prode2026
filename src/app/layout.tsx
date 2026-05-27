@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Sora } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { TournamentProvider } from "@/context/TournamentContext";
 import Navbar from "@/components/Navbar";
-import AdBanner from "@/components/AdBanner";
+import FooterClient from "@/components/FooterClient";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
@@ -78,16 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <TournamentProvider>
             <Navbar />
             <main className="max-w-5xl mx-auto px-4 py-7 sm:py-10">{children}</main>
-            <footer className="max-w-5xl mx-auto px-4 pb-8">
-              <AdBanner className="mb-5 rounded-xl overflow-hidden" />
-              <div className="border-t border-gray-100 pt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
-                <span>© 2026 Prode Mundial 2026</span>
-                <div className="flex gap-4">
-                  <Link href="/privacidad" className="hover:text-gray-600 transition-colors">Política de Privacidad</Link>
-                  <Link href="/como-funciona" className="hover:text-gray-600 transition-colors">¿Cómo funciona?</Link>
-                </div>
-              </div>
-            </footer>
+            <FooterClient />
           </TournamentProvider>
         </AuthProvider>
       </body>
