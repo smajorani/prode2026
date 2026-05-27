@@ -107,6 +107,7 @@ export default function PerfilPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [isSupporter, setIsSupporter] = useState(false);
   const [supportLoading, setSupportLoading] = useState(false);
+  const [supportAmount, setSupportAmount] = useState(1000);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Delete account state
@@ -144,7 +145,7 @@ export default function PerfilPage() {
       const res = await fetch("/api/galio/create-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid: user.uid }),
+        body: JSON.stringify({ uid: user.uid, amount: supportAmount }),
       });
       const data = await res.json();
       if (data.url) {
@@ -338,13 +339,27 @@ export default function PerfilPage() {
                 <p className="text-xs text-gray-400 mt-0.5">Con cualquier contribución eliminás los anuncios para siempre.</p>
               </div>
             </div>
-            <button
-              onClick={handleSupport}
-              disabled={supportLoading}
-              className="w-full bg-yellow-400 hover:bg-yellow-500 text-ink-900 font-bold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50 shadow-sm"
-            >
-              {supportLoading ? "Generando link..." : "Apoyar →"}
-            </button>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">$</span>
+                <input
+                  type="number"
+                  min={100}
+                  step={100}
+                  value={supportAmount}
+                  onChange={(e) => setSupportAmount(Math.max(100, Number(e.target.value)))}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-7 pr-3 py-2.5 text-sm text-ink-900 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
+              <button
+                onClick={handleSupport}
+                disabled={supportLoading || supportAmount < 100}
+                className="bg-yellow-400 hover:bg-yellow-500 text-ink-900 font-bold px-5 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50 shadow-sm flex-shrink-0"
+              >
+                {supportLoading ? "..." : "Apoyar →"}
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-400 text-center mt-1.5">Mínimo $100 ARS · Pago único</p>
           </>
         )}
       </div>
