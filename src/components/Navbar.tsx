@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { useTournament } from "@/context/TournamentContext";
@@ -86,7 +87,7 @@ export default function Navbar() {
               </button>
             )}
 
-            {showSupportModal && <SupportModal onClose={() => setShowSupportModal(false)} />}
+            {showSupportModal && createPortal(<SupportModal onClose={() => setShowSupportModal(false)} />, document.body)}
 
             {user ? (
               <div className="flex items-center gap-4">
