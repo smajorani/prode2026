@@ -8,6 +8,7 @@ import { useTournament } from "@/context/TournamentContext";
 import { usePathname, useRouter } from "next/navigation";
 import Ball from "@/components/Ball";
 import { db } from "@/lib/firebase";
+import SupportModal from "@/components/SupportModal";
 
 export default function Navbar() {
   const { user, logout, loading } = useAuth();
@@ -15,6 +16,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isSupporter, setIsSupporter] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
 
   useEffect(() => {
     if (!user) { setIsSupporter(false); return; }
@@ -76,13 +78,15 @@ export default function Navbar() {
             )}
 
             {user && !isSupporter && (
-              <Link
-                href="/perfil"
+              <button
+                onClick={() => setShowSupportModal(true)}
                 className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-yellow-300 text-yellow-700 bg-yellow-50 hover:bg-yellow-100 transition-colors flex-shrink-0"
               >
                 Sin anuncios ★
-              </Link>
+              </button>
             )}
+
+            {showSupportModal && <SupportModal onClose={() => setShowSupportModal(false)} />}
 
             {user ? (
               <div className="flex items-center gap-4">
