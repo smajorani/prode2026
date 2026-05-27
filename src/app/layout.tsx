@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Sora } from "next/font/google";
-import Script from "next/script";
 import Link from "next/link";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
@@ -66,11 +65,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" className={`${geist.variable} ${geistMono.variable} ${sora.variable}`}>
       <head>
         {adsenseClient && (
-          <Script
+          // eslint-disable-next-line @next/next/no-sync-scripts
+          <script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
             crossOrigin="anonymous"
-            strategy="beforeInteractive"
           />
         )}
       </head>
