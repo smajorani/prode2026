@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Sora } from "next/font/google";
+import Script from "next/script";
+import Link from "next/link";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { TournamentProvider } from "@/context/TournamentContext";
 import Navbar from "@/components/Navbar";
+import AdBanner from "@/components/AdBanner";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
@@ -57,13 +60,35 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+
   return (
     <html lang="es" className={`${geist.variable} ${geistMono.variable} ${sora.variable}`}>
+      <head>
+        {adsenseClient && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
+      </head>
       <body className="min-h-screen antialiased">
         <AuthProvider>
           <TournamentProvider>
             <Navbar />
             <main className="max-w-5xl mx-auto px-4 py-7 sm:py-10">{children}</main>
+            <footer className="max-w-5xl mx-auto px-4 pb-8">
+              <AdBanner className="mb-5 rounded-xl overflow-hidden" />
+              <div className="border-t border-gray-100 pt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
+                <span>© 2026 Prode Mundial 2026</span>
+                <div className="flex gap-4">
+                  <Link href="/privacidad" className="hover:text-gray-600 transition-colors">Política de Privacidad</Link>
+                  <Link href="/como-funciona" className="hover:text-gray-600 transition-colors">¿Cómo funciona?</Link>
+                </div>
+              </div>
+            </footer>
           </TournamentProvider>
         </AuthProvider>
       </body>

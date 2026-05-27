@@ -20,6 +20,7 @@ import { FIXTURE } from "@/lib/fixture";
 import { SQUADS, ALL_TEAMS } from "@/lib/squads";
 import { auth } from "@/lib/firebase";
 import { Tournament, UserProfile, Match, Prediction, Phase, BonusPrediction } from "@/types";
+import AdBanner from "@/components/AdBanner";
 
 // ── Fixture helpers ───────────────────────────────────────────────────────
 
@@ -697,7 +698,7 @@ export default function TournamentDetailPage() {
           {(["tabla", "fixture"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
-                tab === t ? "bg-celeste-500 text-white shadow-sm shadow-celeste-500/30" : "text-gray-700 hover:text-ink-900"
+                tab === t ? "bg-celeste-500 text-white shadow-sm shadow-celeste-500/30" : "text-ink-900 hover:text-ink-700"
               }`}>
               {t === "tabla" ? "Tabla" : "Fixture"}
             </button>
@@ -709,13 +710,16 @@ export default function TournamentDetailPage() {
             <button
               onClick={() => setTab(tab === "admin" ? "tabla" : "admin")}
               className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
-                tab === "admin" ? "bg-emerald-500 text-white shadow-sm" : "text-gray-700 hover:text-ink-900"
+                tab === "admin" ? "bg-emerald-500 text-white shadow-sm" : "text-ink-900 hover:text-ink-700"
               }`}>
               ⚙ Admin
             </button>
           </div>
         )}
       </div>
+
+      {/* Ad banner debajo de los tabs */}
+      {tab !== "admin" && <AdBanner className="mb-5 rounded-xl overflow-hidden" />}
 
       {/* ── TABLA ── */}
       {tab === "tabla" && (
